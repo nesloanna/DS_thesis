@@ -91,43 +91,6 @@ df_merged = pd.merge(df_meso_SL, df_merged, on='Sample ID (TARA_barcode#)',
 
 print(df_merged.shape)
 
-print(df_merged.shape)
-
-
-# Set of columns to check
-cols_to_check = ['Event_D', 'Event_M']
-
-
-def handle_duplicate_cols(df, list_of_cols):
-
-    # Initialize an empty list to store the values for the new column
-    new_column = []
-
-    # Loop through the set of columns
-    for index, row in df.iterrows():
-        value = None
-        for col in list_of_cols:
-            if pd.notna(row[col]):
-                if value is None:
-                    value = row[col]
-                elif value != row[col]:
-                    value = "?"
-                    break
-        new_column.append(value)
-
-    return new_column
-
-
-# Add the new column "Date" to the dataframe
-df_merged['Event'] = handle_duplicate_cols(df_merged, ['Event_D', 'Event_M'])
-df_merged['Station (TARA_station#)'] = handle_duplicate_cols(
-    df_merged, ['Station (TARA_station#)_D', 'Station (TARA_station#)_M'])
-df_merged['Date/Time'] = handle_duplicate_cols(
-    df_merged, ['Date/Time_D', 'Date/Time_M'])
-df_merged['Basis'] = handle_duplicate_cols(df_merged, ['Basis_D', 'Basis_M'])
-df_merged['Campaign'] = handle_duplicate_cols(
-    df_merged, ['Campaign_D', 'Campaign_M'])
-
 
 # Sort all columns (but Sample ID) alphabetically
 columns_to_sort = sorted(
@@ -142,16 +105,18 @@ df_merged = df_merged[desired_columns]
 # Print the updated dataframe
 print(df_merged.shape)
 
-# List of columns to drop
-cols_to_drop = ['Event_D', 'Event_M', 'Station (TARA_station#)_D',
-                'Station (TARA_station#)_M', 'Date/Time_D', 'Date/Time_M',
-                'Basis_D', 'Basis_M', 'Campaign_D', 'Campaign_M']
+# # List of columns to drop
+# cols_to_drop = ['Event_D', 'Event_M', 'Station (TARA_station#)_D',
+#                 'Station (TARA_station#)_M', 'Date/Time_D', 'Date/Time_M',
+#                 'Basis_D', 'Basis_M', 'Campaign_D', 'Campaign_M',
+#                 # 'Latitude_D', 'Latitude_M', 'Longitude_D', 'Longitude_M'
+#                 ]
 
-# Drop the columns
-df_merged = df_merged.drop(columns=cols_to_drop)
+# # Drop the columns
+# df_merged = df_merged.drop(columns=cols_to_drop)
 
 # Print the dataframe after dropping the columns
-print(df_merged.shape)
+# print(df_merged.shape)
 
 # Save merged and sorted dataframe to csv
 df_merged.to_csv("Tara_merged_mesoSL.csv", index=False)
