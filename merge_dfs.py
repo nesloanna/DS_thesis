@@ -5,21 +5,12 @@ import os
 os.chdir("/Users/annaolsen/Desktop/Speciale/DS_thesis/data")
 print(os.getcwd())
 
-
+# Load datasets
 df_bio = pd.read_csv("Tara_Biodiversity.csv")
 df_depth = pd.read_csv("Tara_Environmental_Depth.csv")
 df_meso_SL = pd.read_csv("Tara_Env_Meso_SampleLocation.csv")
 
-# Find unique sample IDs
-ids_df_depth = set(df_depth["Sample ID (TARA_barcode#)"])
-ids_df_meso = set(
-    df_meso_SL["Sample ID (TARA_barcode#, registered at ...)"])
-
-# Find the Sample IDs that are not common between the DataFrames
-unique_ids_depth = ids_df_depth - ids_df_meso
-unique_ids_meso = ids_df_meso - ids_df_depth
-
-
+# New column names for Meso SL
 new_column_names = {
     'Sample ID (TARA_barcode#, registered at ...)': 'Sample ID (TARA_barcode#)',
     'Station (TARA_station#, registered at ...)': 'Station (TARA_station#)'
@@ -27,6 +18,37 @@ new_column_names = {
 
 # Rename the columns
 df_meso_SL = df_meso_SL.rename(columns=new_column_names)
+
+# Find unique sample IDs
+ids_df_depth = set(df_depth["Sample ID (TARA_barcode#)"])
+ids_df_meso = set(df_meso_SL["Sample ID (TARA_barcode#)"])
+
+# Find the Sample IDs that are not common between the DataFrames
+unique_ids_depth = ids_df_depth - ids_df_meso
+unique_ids_meso = ids_df_meso - ids_df_depth
+
+
+print("Original shape of meso:", df_meso_SL.shape)
+
+
+# ------- Add extra IDs -------
+
+new_ids_for_depth = sorted(list(unique_ids_meso))
+df_new_depth_ids = pd.DataFrame(
+    {'Sample ID (TARA_barcode#)': new_ids_for_depth})
+
+df_depth = pd.concat([df_depth, df_new_depth_ids], ignore_index=True)
+df_depth = df_depth.sort_values(by='Sample ID (TARA_barcode#)')
+
+df_bio = pd.concat([df_bio, df_new_depth_ids], ignore_index=True)
+df_bio = df_bio.sort_values(by='Sample ID (TARA_barcode#)')
+
+print("Shape (depth) after adding meso IDs:", df_depth.shape)
+print("Shape (bio) after adding meso IDs:", df_bio.shape)
+
+# Reset index after concatenating
+df_depth = df_depth.reset_index(drop=True)
+df_bio = df_bio.reset_index(drop=True)
 
 
 # Initialize a list to store the names of identical columns
@@ -56,46 +78,80 @@ df_merged = pd.merge(df_bio, df_depth, on=duplicate_cols, how="inner")
 
 print("Shape after merging bio and depth:", df_merged.shape)
 
-new_meso_ids = sorted(list(unique_ids_meso))
-df_meso_ids = pd.DataFrame({'Sample ID (TARA_barcode#)': new_meso_ids})
-
-df_merged = pd.concat([df_merged, df_meso_ids], ignore_index=True)
-print("Shape after adding meso IDs:", df_merged.shape)
-
-# Reset index after concatenating
-df_merged = df_merged.reset_index(drop=True)
-
-new_depth_ids = sorted(list(unique_ids_depth))
-df_depth_ids = pd.DataFrame({'Sample ID (TARA_barcode#)': new_depth_ids})
-df_meso_SL = pd.concat([df_meso_SL, df_depth_ids], ignore_index=True)
-print("Shape (meso) after adding depth IDs:", df_meso_SL.shape)
-
-# Reset index after concatenating
-df_meso_SL = df_meso_SL.reset_index(drop=True)
-
-df_merged = df_merged.sort_values(by='Sample ID (TARA_barcode#)')
-df_meso_SL = df_meso_SL.sort_values(by='Sample ID (TARA_barcode#)')
+# df_merged = df_merged.sort_values(by='Sample ID (TARA_barcode#)')
+# df_meso_SL = df_meso_SL.sort_values(by='Sample ID (TARA_barcode#)')
 
 duplicate_cols_meso = ['Sample ID (TARA_barcode#)', 'Campaign',
                        'Station (TARA_station#)', 'Event', 'Basis',
                        'Date/Time', 'Method/Device']
 
 # Merge df_merged and df_meso
-df_merged = pd.merge(df_merged, df_meso_SL, on='Sample ID (TARA_barcode#)',
-                     how="inner")
+df_merged = pd.merge(df_meso_SL, df_merged, on='Sample ID (TARA_barcode#)',
+                     how="outer", suffixes=['_D', '_M'])
+
+print(df_merged.shape)
 
 print(df_merged.shape)
 
 
+# Set of columns to check
+cols_to_check = ['Event_D', 'Event_M']
+
+
+def handle_duplicate_cols(df, list_of_cols):
+
+    # Initialize an empty list to store the values for the new column
+    new_column = []
+
+    # Loop through the set of columns
+    for index, row in df.iterrows():
+        value = None
+        for col in list_of_cols:
+            if pd.notna(row[col]):
+                if value is None:
+                    value = row[col]
+                elif value != row[col]:
+                    value = "?"
+                    break
+        new_column.append(value)
+
+    return new_column
+
+
+# Add the new column "Date" to the dataframe
+df_merged['Event'] = handle_duplicate_cols(df_merged, ['Event_D', 'Event_M'])
+df_merged['Station (TARA_station#)'] = handle_duplicate_cols(
+    df_merged, ['Station (TARA_station#)_D', 'Station (TARA_station#)_M'])
+df_merged['Date/Time'] = handle_duplicate_cols(
+    df_merged, ['Date/Time_D', 'Date/Time_M'])
+df_merged['Basis'] = handle_duplicate_cols(df_merged, ['Basis_D', 'Basis_M'])
+df_merged['Campaign'] = handle_duplicate_cols(
+    df_merged, ['Campaign_D', 'Campaign_M'])
+
+
 # Sort all columns (but Sample ID) alphabetically
-# columns_to_sort = sorted(
-#     [col for col in df_merged.columns if col not in ['Sample ID (TARA_barcode#)']])
+columns_to_sort = sorted(
+    [col for col in df_merged.columns if col not in ['Sample ID (TARA_barcode#)']])
 
-# # Reorder the columns
-# desired_columns = ['Sample ID (TARA_barcode#)'] + columns_to_sort
+# Reorder the columns
+desired_columns = ['Sample ID (TARA_barcode#)'] + columns_to_sort
 
-# # Create a new dataframe with the desired column order, sorted alphabetically
-# df_merged = df_merged[desired_columns]
+# Create a new dataframe with the desired column order, sorted alphabetically
+df_merged = df_merged[desired_columns]
 
-# # Save merged and sorted dataframe to csv
-# df_merged.to_csv("Tara_merged_mesoSL.csv", index=False)
+# Print the updated dataframe
+print(df_merged.shape)
+
+# List of columns to drop
+cols_to_drop = ['Event_D', 'Event_M', 'Station (TARA_station#)_D',
+                'Station (TARA_station#)_M', 'Date/Time_D', 'Date/Time_M',
+                'Basis_D', 'Basis_M', 'Campaign_D', 'Campaign_M']
+
+# Drop the columns
+df_merged = df_merged.drop(columns=cols_to_drop)
+
+# Print the dataframe after dropping the columns
+print(df_merged.shape)
+
+# Save merged and sorted dataframe to csv
+df_merged.to_csv("Tara_merged_mesoSL.csv", index=False)
