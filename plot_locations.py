@@ -10,8 +10,6 @@ import dash_bootstrap_components as dbc
 import plotly.express as px
 import sys
 import plotly.graph_objects as go
-from dash.exceptions import PreventUpdate
-app = Dash()
 
 
 os.chdir("/Users/annaolsen/Desktop/Speciale/DS_thesis/data")
@@ -76,7 +74,7 @@ app = dash.Dash(external_stylesheets=[dbc.themes.FLATLY])
 
 # load_figure_template('FLATLY')
 # Makes the Bootstrap Themed Plotly templates available
-load_figure_template("bootstrap")
+load_figure_template("cerulean")
 
 # Dashboard layout
 app.layout = html.Div([
@@ -182,13 +180,19 @@ app.layout = html.Div([
         ]),
         dbc.Row([  # Row with scatter plot and bar chart
             dbc.Col(
-                dcc.Dropdown(id='scatter_dropdown',
-                             options=scatter_options,
-                             multi=False,
-                             clearable=False,
-                             value='Temperature',
-                             style={'marginTop': 40}
-                             ), width=2),
+                html.Div([
+                    html.P('Choose an attribute:',
+                           style={'fontWeight': "bold",
+                                  'marginTop': 30,
+                                  'marginBottom': 5,
+                                  'font-size': 16}),
+                    dcc.Dropdown(id='scatter_dropdown',
+                                 options=scatter_options,
+                                 multi=False,
+                                 clearable=False,
+                                 value='Temperature',
+                                 style={'marginTop': 0})
+                ]), width=2),
             dbc.Col(
                 html.Div([
                     dcc.Graph(id='scatter_plot')]),
@@ -313,4 +317,4 @@ def plot_samples_map(year_range, marine_biome, depth, temperature, env_feature):
 
 # start the web application
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8058)
+    app.run_server(debug=True, port=8056)
