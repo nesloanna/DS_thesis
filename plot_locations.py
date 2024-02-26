@@ -16,7 +16,7 @@ os.chdir("/Users/annaolsen/Desktop/Speciale/DS_thesis/data")
 print(os.getcwd())
 
 # Load datasets
-df = pd.read_csv("Tara_plot.csv")
+df = pd.read_csv("Tara_Cleaned.csv")
 
 # Removing rows with empty longitude or latitude
 df = df.dropna(subset=['Latitude', 'Longitude'])
@@ -34,7 +34,6 @@ df['Temperature-NaN'] = df['Temperature'].apply(
     lambda x: 'NaN' if pd.isna(x) else 'Value')
 
 temperature_values = df['Temperature-NaN'].unique()
-
 
 df['Temperature'].fillna('NaN', inplace=True)  # NaN -> 'Unknown'
 
@@ -59,12 +58,22 @@ df['Env feature (abbreviation)'].fillna(
 
 env_features = df['Env feature (abbreviation)'].unique()
 
-cols = ['Temperature', 'Depth ref', 'Env feature (abbreviation)']
+# ---------- Data for scatter plot and dropdown menus ----------
+cols_x = ['Temperature', 'Depth ref', 'Env feature (abbreviation)', 'Nitrate_D',
+          'Nitrate_M', 'Phosphate', 'NPP C (30)_D', 'NPP C (30)_M']
 
 # Create dropdown menu for selecting attributes
-scatter_options = [{'label': col, 'value': col} for col in cols]
+scatter_options_x = [{'label': col, 'value': col} for col in cols_x]
 
 
+cols_y = ['Species div', 'Species miTAG chao',
+          'Species miTAG ace', 'Species richness', 'Functional richness']
+
+# Create dropdown menu for selecting attributes
+scatter_options_y = [{'label': col, 'value': col} for col in cols_y]
+
+
+# ---------- Plotly, dash and mapbox ----------
 px.set_mapbox_access_token(
     'pk.eyJ1Ijoia29ydHBsb3RseSIsImEiOiJjbHBoNDZmZm0wMHUyMnJwNm5yM3RtcjY1In0.qxuHfESjhBp1wqT9ByZc0g')
 
@@ -76,7 +85,9 @@ app = dash.Dash(external_stylesheets=[dbc.themes.FLATLY])
 # Makes the Bootstrap Themed Plotly templates available
 load_figure_template("cerulean")
 
-# Dashboard layout
+
+# ---------- Dashboard layout ----------
+
 app.layout = html.Div([
     dbc.Container([
         dbc.Row(  # Row with title and subtitle
@@ -181,17 +192,29 @@ app.layout = html.Div([
         dbc.Row([  # Row with scatter plot and bar chart
             dbc.Col(
                 html.Div([
-                    html.P('Choose an attribute:',
+                    html.P('Choose an attribute for x-axis:',
                            style={'fontWeight': "bold",
                                   'marginTop': 30,
                                   'marginBottom': 5,
                                   'font-size': 16}),
-                    dcc.Dropdown(id='scatter_dropdown',
-                                 options=scatter_options,
+                    dcc.Dropdown(id='scatter_dropdown_x',
+                                 options=scatter_options_x,
                                  multi=False,
                                  clearable=False,
                                  value='Temperature',
-                                 style={'marginTop': 0})
+                                 style={'marginTop': 0}),
+                    html.P('Choose an attribute for y-axis:',
+                           style={'fontWeight': "bold",
+                                  'marginTop': 30,
+                                  'marginBottom': 5,
+                                  'font-size': 16}),
+                    dcc.Dropdown(id='scatter_dropdown_y',
+                                 options=scatter_options_y,
+                                 multi=False,
+                                 clearable=False,
+                                 value='Species richness',
+                                 style={'marginTop': 0}),
+
                 ]), width=2),
             dbc.Col(
                 html.Div([
@@ -207,48 +230,36 @@ app.layout = html.Div([
 ])
 
 
-@app.callback(
-    Output('sample_count_bar', 'figure'),
-    [Input('year_range_slider', 'value')]
-)
-def plot_sample_count(year_range):
-    filtered_df = df[(df['Year'] >= year_range[0]) &
-                     (df['Year'] <= year_range[1])]
-    counts_per_year = filtered_df['Year'].value_counts().sort_index()
-
-    fig = px.bar(x=counts_per_year.index, y=counts_per_year.values,
-                 labels={'x': 'Year', 'y': 'Sample Count'},
-                 title='Sample Count per Year')
-
-    return fig
-
-# Update scatter plot based on selected attributes
-
-
+# ---------- Scatter plot (updates based on selected attributes) ----------
 @app.callback(
     Output('scatter_plot', 'figure'),
     [Input('year_range_slider', 'value'),
-     Input('scatter_dropdown', 'value')]
+     Input('scatter_dropdown_x', 'value'),
+     Input('scatter_dropdown_y', 'value')]
 )
-def update_scatter_plot(year_range, selected_attribute):
-    filtered_df = df[(df['Year'] >= year_range[0]) &
-                     (df['Year'] <= year_range[1])]
+def update_scatter_plot(year_range, attribute_x, attribute_y):
+
+    dff = df[df['Year'].between(year_range[0], year_range[1])]
 
     # Ensure Latitude and Longitude are always included
     # plot_columns = ['Latitude', 'Longitude']
-    plot_columns = ['Species richness']
+    plot_columns_x = ['Temperature']
+    plot_columns_y = ['Species richness']
 
     # Add selected attributes to the plot columns if they exist
-    if selected_attribute:
-        plot_columns.append(selected_attribute)
+    if attribute_x:
+        plot_columns_x[0] = attribute_x
 
-    print("Plot Columns:", plot_columns)
+    if attribute_y:
+        plot_columns_y[0] = attribute_y
+
+    print(f"Plot Columns x: {plot_columns_x} and y: {plot_columns_y}")
 
     # Create scatter plot
-    fig = px.scatter(filtered_df,
+    fig = px.scatter(dff,
                      height=600,
-                     x=plot_columns[1],
-                     y=plot_columns[0],
+                     x=plot_columns_x[0],
+                     y=plot_columns_y[0],
                      color='Latitude',
                      hover_name='Year',
                      title='Scatter Plot')
@@ -260,7 +271,7 @@ def update_scatter_plot(year_range, selected_attribute):
     return fig
 
 
-# Plot sample locations on map
+# ---------- Map - Plot sample locations ----------
 @app.callback(
     [Output('ocean_map', 'figure'),
      Output('filtered-count', 'children')],
@@ -303,7 +314,7 @@ def plot_samples_map(year_range, marine_biome, depth, temperature, env_feature):
     # Update the hover template
     fig.update_traces(hovertemplate=hover_template)
 
-    fig.update_layout(mapbox_style='mapbox://styles/kortplotly/clsvyfa7c007e01qz44qfeq61',
+    fig.update_layout(mapbox_style='mapbox://styles/kortplotly/clsyukswv002401p8a4xtbbm3',
                       margin={"r": 0, "l": 0, "b": 0, "t": 20})
 
     # to preserve the UI settings such as zoom and panning in the update
@@ -313,6 +324,24 @@ def plot_samples_map(year_range, marine_biome, depth, temperature, env_feature):
     count = len(dff)
 
     return [fig, f"{count}"]
+
+
+# ---------- Bar chart (sample counts) ----------
+@app.callback(
+    Output('sample_count_bar', 'figure'),
+    [Input('year_range_slider', 'value')]
+)
+def plot_sample_count(year_range):
+
+    dff = df[df['Year'].between(year_range[0], year_range[1])]
+
+    counts_per_year = dff['Year'].value_counts().sort_index()
+
+    fig = px.bar(x=counts_per_year.index, y=counts_per_year.values,
+                 labels={'x': 'Year', 'y': 'Sample Count'},
+                 title='Sample Count per Year')
+
+    return fig
 
 
 # start the web application
