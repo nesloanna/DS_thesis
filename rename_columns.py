@@ -1,4 +1,5 @@
 import pandas as pd
+import re
 import os
 
 os.chdir("/Users/annaolsen/Desktop/Speciale/DS_thesis/data")
@@ -117,6 +118,30 @@ new_column_names = {
 
 # Rename the columns
 df = df.rename(columns=new_column_names)
+
+
+def clean_value(value):
+    if isinstance(value, str):
+        # Title case the value
+        cleaned_value = value.title()
+        # Remove text within parentheses using regular expressions
+        cleaned_value = re.sub(r'\s*\([^)]*\)', '', cleaned_value)
+        return cleaned_value.strip()  # Strip leading and trailing spaces
+    else:
+        # If the value is not a string, return it unchanged
+        return value
+
+
+# Apply the function to the column
+df['Depth Layer Zone'] = df['Env feature (full name (ENVO:ID), terms re...)'].apply(
+    clean_value)
+
+df['BG Province'] = df['BG province_D'].apply(clean_value)
+df['BG Province'] = df['BG Province'].str.replace(
+    r'\[.*?\]', '', regex=True).str.strip()
+
+df['OS region'] = df['OS region'].str.replace(
+    r'\[.*?\]', '', regex=True).str.strip()
 
 # Sort all columns (but Sample ID) alphabetically
 columns_to_sort = sorted(
