@@ -20,7 +20,7 @@ df = df.dropna(subset=['Latitude', 'Longitude'])
 # Reset the index after dropping rows
 df.reset_index(drop=True, inplace=True)
 
-df = df[:1000]
+# df = df[:1000]
 
 all_data_points = len(df)
 
@@ -31,11 +31,10 @@ h6_style = {'fontWeight': "bold", 'marginTop': 15, 'marginBottom': 5}
 # ---- Year slider ----
 year_min, year_max = df['Year'].min(), df['Year'].max()
 
-# Calculate all years within the range
-all_years = list(range(year_min, year_max + 1))
+all_years = list(range(year_min, year_max + 1))  # Find all years within range
 
-# Generate marks for each year
-year_marks = {year: str(year) for year in all_years}
+year_marks = {year: str(year)
+              for year in all_years}  # Create marks for each year
 
 # ---- Temperature ----
 df['Temperature-NaN'] = df['Temperature'].apply(
@@ -46,12 +45,12 @@ temperature_values = df['Temperature-NaN'].unique()
 df['Temperature'].fillna('NaN', inplace=True)  # NaN -> 'Unknown'
 
 
-# Marine biome (depth)
+# ---- Marine biome (depth) ----
 df['Marine biome_D'].fillna('Unknown', inplace=True)  # NaN -> 'Unknown'
 
 marine_biomes = df['Marine biome_D'].unique()
 
-# Depth
+# ---- Depth ----
 df['Depth-NaN'] = df['Depth ref'].apply(
     lambda x: 'NaN' if pd.isna(x) else 'Value')
 
@@ -60,33 +59,32 @@ depth_values = df['Depth-NaN'].unique()
 df['Depth ref'].fillna('NaN', inplace=True)  # NaN -> 'Unknown'
 
 
-# Env feature (depth layer zone)
+# ---- Env feature (depth layer zone) ----
 df['Env feature (abbreviation)'].fillna(
     'Unknown', inplace=True)  # NaN -> 'Unknown'
 
 env_features = df['Env feature (abbreviation)'].unique()
 
 # ---------- Data for scatter plot and dropdown menus ----------
-cols_x = ['Temperature', 'Depth ref', 'Env feature (abbreviation)', 'Nitrate_D',
-          'Nitrate_M', 'Phosphate', 'NPP C (30)_D', 'NPP C (30)_M']
+cols_x = ['Temperature', 'Depth ref', 'Env feature (abbreviation)',
+          'Nitrate_D', 'Nitrate_M', 'Phosphate', 'NPP C (30)_D', 'NPP C (30)_M']
 
-# Create dropdown menu for selecting attributes
+# Options for dropdown menu (x-axis)
 scatter_options_x = [{'label': col, 'value': col} for col in cols_x]
 
 
 cols_y = ['Species div', 'Species miTAG chao',
           'Species miTAG ace', 'Species richness', 'Functional richness']
 
-# Create dropdown menu for selecting attributes
+# Options for dropdown menu (y-axis)
 scatter_options_y = [{'label': col, 'value': col} for col in cols_y]
 
 
+# ---- Left side bar ----
 SIDEBAR_STYLE = {
-    # "position": "fixed",
     "top": 0,
     "left": 0,
     "bottom": 0,
-    # "width": "20rem",
     "paddingLeft": '20px',
     "paddingRight": '10px',
     "paddingTop": "32px",
@@ -158,23 +156,27 @@ sidebar = html.Div([
     style=SIDEBAR_STYLE)
 
 
-# ---- Info ----
+# ---- Info box ----
 
 # Define the style for the card containing the info
-info_box_style = {'margin-top': '15px', 'marginBottom': '15px',
+info_box_style = {'margin-top': '0px', 'marginBottom': '20px',
                   'padding': '15px', 'background-color': '#f0f0f0',
                   'line-height': '1.1'}
 
-info_box_style_a = {'margin-top': '15px', 'marginBottom': '15px',
+info_box_style_a = {'margin-top': '0px', 'marginBottom': '20px',
                     'marginLeft': '0px',
                     'padding': '0px', 'background-color': '#f0f0f0',
                     'line-height': '1.1'}
 
 # Define the layout for the info box
 info_box = dbc.Card([
-    dbc.CardBody(html.Div(
-        "Click on a point to display its information.",
-        id='selected_point_info_text'))
+    dbc.CardBody([
+        html.H5("Explore points", className="card-title",
+                style={'marginBottom': '10px'},
+                id='selected_point_info_header'),
+        html.P("Click on a point to display its information.",
+               className="card-text", id='selected_point_info_text')
+    ])
 ], style=info_box_style)
 
 
@@ -199,7 +201,7 @@ app.layout = html.Div([
                 html.Div([
                     html.H3(children='TARA Ocean'),
                 ], style={'textAlign': 'center', 'marginTop': 20,
-                          'marginBottom': 0}))),
+                          'marginBottom': 10}))),
 
         dbc.Row(  # Row with sidebar, ocean map, info box
             [dbc.Col(
@@ -212,7 +214,20 @@ app.layout = html.Div([
                               value='trigger-callback'),
                 ]), width=7, className="scatter_map"),
              dbc.Col(  # Info box
-                html.Div(id='selected_point_info_box'),
+                html.Div([
+                    html.Div(id='selected_point_info_box'),
+                    dcc.Dropdown(
+                        id='boxplot_dropdown',
+                        options=[
+                            {'label': 'Temperature', 'value': 'Temperature'},
+                            {'label': 'Phosphate', 'value': 'Phosphate'},
+                            {'label': 'Depth ref', 'value': 'Depth ref'}
+                        ],
+                        value='Temperature',  # Default value
+                        clearable=False,
+                        style={'width': '100%'}),
+                    dcc.Graph(id='box_plot', figure={}),
+                ]),
                 width=3),
              ]),
         dbc.Row([
@@ -302,6 +317,19 @@ def update_scatter_plot(year_range, attribute_x, attribute_y):
     return fig
 
 
+# ---------- Box plot ----------
+@app.callback(
+    Output('box_plot', 'figure'),
+    [Input('year_range_slider', 'value'),
+     Input('boxplot_dropdown', 'value')]
+)
+def update_box_plot(year_range, selected_column):
+    dff = df[df['Year'].between(year_range[0], year_range[1])]
+    fig = px.box(dff, y=selected_column,
+                 title=f'Box Plot of {selected_column}')
+    return fig
+
+
 # ---------- Ocean map - Plot sample locations ----------
 @app.callback(
     [Output('ocean_map', 'figure'),
@@ -325,7 +353,7 @@ def plot_samples_map(year_range, marine_biome, depth, temperature, env_feature):
                             lat=dff['Latitude'],
                             lon=dff['Longitude'],
                             color='OS region',
-                            zoom=0.8, height=600,
+                            zoom=0.8, height=700,
                             title=None, opacity=.5,
                             custom_data=['OS region',
                                          'Year', 'Date', 'Marine biome_D',
@@ -345,7 +373,7 @@ def plot_samples_map(year_range, marine_biome, depth, temperature, env_feature):
     fig.update_traces(hovertemplate=hover_template)
 
     fig.update_layout(mapbox_style='mapbox://styles/kortplotly/clsyukswv002401p8a4xtbbm3',
-                      margin={"r": 0, "l": 0, "b": 0, "t": 20},
+                      margin={"r": 0, "l": 0, "b": 0, "t": 0},
                       showlegend=False)
 
     # to preserve the UI settings such as zoom and panning in the update
@@ -359,27 +387,16 @@ def plot_samples_map(year_range, marine_biome, depth, temperature, env_feature):
 
 # ---------- Clicks on map ----------
 
-
-# Define the style for the table
-# table_style = {
-#     'borderSpacing': '10px',  # Increase spacing between elements
-#     'borderCollapse': 'separate',  # Separate borders for cells
-# }
-
 # Define the style for the table
 table_style = {
-    'margin-top': '15px',
+    'margin-top': '0px',
     'margin-bottom': '15px',
-    'padding': '0px',
+    'padding': '3px',
     'background-color': '#f0f0f0',
     'line-height': '1.7',
     'overflowX': 'auto',
     'width': '100%',
 }
-
-# Define the style for even and odd rows
-even_row_style = {'backgroundColor': '#f8f9fa'}  # Light gray
-odd_row_style = {'backgroundColor': '#ffffff'}  # White
 
 
 @app.callback(
@@ -439,28 +456,14 @@ def display_selected_point_info(clickData):
                             'fontWeight': 'bold'
                         }
                     )
-                    # Define the table for selected point information
-
-                    # selected_info_table = dash_table.DataTable(
-                    #     [
-                    #         html.Tr([html.Td("OS region"), html.Td(os_region)]),
-                    #         html.Tr([html.Td("Temperature"),
-                    #                 html.Td(temperature)]),
-                    #         html.Tr([html.Td("Date"), html.Td(date)]),
-                    #         html.Tr([html.Td("Marine biome"),
-                    #                 html.Td(marine_biome)]),
-                    #         html.Tr([html.Td("Depth"), html.Td(depth)]),
-                    #         html.Tr([html.Td("Depth Layer Zone"),
-                    #                 html.Td(depth_layer)]),
-                    #     ],
-                    #     style_table=table_style,
-                    #     style_data_conditional=[
-                    #         {'if': {'row_index': 'odd'},
-                    #          'backgroundColor': '#32a852',
-                    #          }]
-                    # )
 
                     return dbc.Card([
+                        html.H5("Explore points", className="card-title",
+                                style={'marginTop': '15px',
+                                       'marginBottom': '0px',
+                                       'marginLeft': '15px',
+                                       'paddingLeft': '15px',
+                                       'paddingTop': '15px'}),
                         dbc.CardBody(selected_info_table)
                     ], style=info_box_style_a)
     # If no point is clicked, display default message
