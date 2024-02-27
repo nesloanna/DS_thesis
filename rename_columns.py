@@ -143,6 +143,38 @@ df['BG Province'] = df['BG Province'].str.replace(
 df['OS region'] = df['OS region'].str.replace(
     r'\[.*?\]', '', regex=True).str.strip()
 
+
+# Define your replacements in a dictionary
+replacements = {
+    'Surface Water Layer At The Interface With Atmosphere': 'Surface Water Layer',
+    'Deep Chlorophyll Maximum Layer & Marine Oxygen Minimum Zone': 'Deep Chlorophyll Maximum Layer',
+    'Deep Chlorophyll Maximum Layer & Near Bottom': 'Deep Chlorophyll Maximum Layer',
+    'Mesopelagic Zone & Marine Oxygen Minimum Zone': 'Mesopelagic Zone',
+    'Mesopelagic Zone & Nutricline': 'Mesopelagic Zone',
+    'Marine Epipelagic Mixed Layer & Thermocline': 'Marine Epipelagic Mixed Layer',
+    'Water Layer With No Specific Feature & Near Bottom': 'Near Bottom'
+}
+
+# Replace values using the dictionary
+df['Depth Layer Zone_new'] = df['Depth Layer Zone'].replace(replacements)
+
+
+"""
+Surface Water Layer   <- Surface Water Layer At The Interface With Atmosphere
+Deep Chlorophyll Maximum Layer   <- Deep Chlorophyll Maximum Layer & Marine Oxygen Minimum Zone
+    Deep Chlorophyll Maximum Layer   <- Deep Chlorophyll Maximum Layer & Near Bottom
+Water Layer With No Specific Feature
+Mesopelagic Zone   <-  Mesopelagic Zone & Marine Oxygen Minimum Zone
+    Mesopelagic Zone   <-  Mesopelagic Zone & Nutricline 
+Marine Epipelagic Mixed Layer   <- Marine Epipelagic Mixed Layer & Thermocline 
+Near Bottom    <- Water Layer With No Specific Feature & Near Bottom
+Unknown
+Filtered Sea Water
+Marine Oxygen Minimum Zone
+Brines
+"""
+
+
 # Sort all columns (but Sample ID) alphabetically
 columns_to_sort = sorted(
     [col for col in df.columns if col not in ['Sample ID']])
