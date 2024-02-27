@@ -6,6 +6,7 @@ import plotly.graph_objects as go  # or plotly.express as px
 from dash import Dash, dcc, html, Input, Output, dash_table
 import dash
 import dash_bootstrap_components as dbc
+import json
 
 
 os.chdir("/Users/annaolsen/Desktop/Speciale/DS_thesis/data")
@@ -25,7 +26,7 @@ df.reset_index(drop=True, inplace=True)
 all_data_points = len(df)
 
 
-h6_style = {'fontWeight': "bold", 'marginTop': 15, 'marginBottom': 5}
+h6_style = {'fontWeight': "bold", 'marginTop': 20, 'marginBottom': 10}
 
 
 # ---- Year slider ----
@@ -65,6 +66,7 @@ df['Env feature (abbreviation)'].fillna(
 
 env_features = df['Env feature (abbreviation)'].unique()
 
+
 # ---------- Data for scatter plot and dropdown menus ----------
 cols_x = ['Temperature', 'Depth ref', 'Env feature (abbreviation)',
           'Nitrate_D', 'Nitrate_M', 'Phosphate', 'NPP C (30)_D', 'NPP C (30)_M']
@@ -95,7 +97,20 @@ SIDEBAR_STYLE = {
 sidebar = html.Div([
     html.H4("Filters"),
     html.Hr(),
-    html.H6('Years', style=h6_style),
+    html.H6('Color points by category:', style=h6_style),
+    dbc.RadioItems(
+        options=[
+            {"label": 'Marine biome', "value": 'Marine biome_D'},
+            {"label": 'Ocean and sea region', "value": 'OS region'},
+            {"label": 'Depth layer zone', "value": 'Depth Layer Zone_new'},
+            {"label": 'Biogeographical province', "value": 'BG Province'},
+        ],
+        value="OS region",
+        id="map-color-input",
+        style={'marginTop': 10, 'marginBottom': 25},
+    ),
+    html.H6('Years',
+            style={'fontWeight': "bold", 'marginTop': 15, 'marginBottom': 15}),
     dcc.RangeSlider(
         id='year_range_slider',
         min=year_min,
@@ -103,12 +118,6 @@ sidebar = html.Div([
         step=1,
         marks=year_marks,
         value=[year_min, year_max],
-    ),
-    html.H6('Marine biome', style=h6_style),
-    dbc.Checklist(
-        id='marine_biomes',
-        options=marine_biomes,
-        value=marine_biomes,
     ),
     html.H6('Temperature', style=h6_style),
     dbc.Checklist(
@@ -124,20 +133,13 @@ sidebar = html.Div([
         value=depth_values,
         inline=True,
     ),
-    html.H6('Depth layer zone', style=h6_style),
-    dbc.Checklist(
-        id='env_features',
-        options=env_features,
-        value=env_features,
-        inline=True,
-    ),
     html.Div([
         html.P("Filtered data:",
                style={'marginBottom': 0, 'marginLeft': 0,
-                      'marginTop': 15, 'font-size': '16px'}),
+                      'marginTop': 25, 'font-size': '16px'}),
         html.Div(id='filtered-count', style={
             'marginBottom': 0, 'font-size': '16px',
-            'marginTop': 15,
+            'marginTop': 25,
             'font-weight': 'bold', 'marginLeft': 30}),
     ], style={'display': 'flex'}),
     html.Div([
@@ -216,17 +218,27 @@ app.layout = html.Div([
              dbc.Col(  # Info box
                 html.Div([
                     html.Div(id='selected_point_info_box'),
-                    dcc.Dropdown(
-                        id='boxplot_dropdown',
-                        options=[
-                            {'label': 'Temperature', 'value': 'Temperature'},
-                            {'label': 'Phosphate', 'value': 'Phosphate'},
-                            {'label': 'Depth ref', 'value': 'Depth ref'}
-                        ],
-                        value='Temperature',  # Default value
-                        clearable=False,
-                        style={'width': '100%'}),
-                    dcc.Graph(id='box_plot', figure={}),
+                    dbc.Card([
+                        dbc.CardBody([
+                            html.H5("Attribute for box plot"),
+                            dcc.Dropdown(
+                                id='boxplot_dropdown',
+                                options=[
+                                    {'label': 'Temperature',
+                                        'value': 'Temperature'},
+                                    {'label': 'Phosphate', 'value': 'Phosphate'},
+                                    {'label': 'Depth ref', 'value': 'Depth ref'}
+                                ],
+                                value='Temperature',  # Default value
+                                clearable=False,
+                                style={'width': '90%', 'marginBottom': '10px',
+                                       'marginTop': '10px'}),
+                            dcc.Graph(id='box_plot', figure={}),
+                            # Add a hidden div to store the selected point information
+                            html.Div(id='selected_point_info',
+                                     style={'display': 'none'}),
+                        ])
+                    ], style=info_box_style)
                 ]),
                 width=3),
              ]),
@@ -287,8 +299,6 @@ def update_scatter_plot(year_range, attribute_x, attribute_y):
 
     dff = df[df['Year'].between(year_range[0], year_range[1])]
 
-    # Ensure Latitude and Longitude are always included
-    # plot_columns = ['Latitude', 'Longitude']
     plot_columns_x = ['Temperature']
     plot_columns_y = ['Species richness']
 
@@ -310,49 +320,102 @@ def update_scatter_plot(year_range, attribute_x, attribute_y):
                      hover_name='Year',
                      title='Scatter Plot')
 
-    # fig.update_layout(plot_bgcolor='#ffffff')
-
-    # fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGrey')
-
     return fig
 
 
 # ---------- Box plot ----------
 @app.callback(
     Output('box_plot', 'figure'),
-    [Input('year_range_slider', 'value'),
+    [Input('selected_point_info', 'children'),
      Input('boxplot_dropdown', 'value')]
 )
-def update_box_plot(year_range, selected_column):
-    dff = df[df['Year'].between(year_range[0], year_range[1])]
-    fig = px.box(dff, y=selected_column,
-                 title=f'Box Plot of {selected_column}')
+def update_box_plot(selected_point_info, selected_column):
+
+    # fig = px.box(df, y=selected_column, title=f'Box Plot of {selected_column}')
+
+    fig = go.Figure(
+        data=[go.Box(y=df[selected_column],
+                     boxpoints=False,  # 'all', 'outliers', or 'suspectedoutliers'
+                     jitter=0.7,  # add some jitter for a better separation between points
+                     pointpos=-1.8,  # relative position of points wrt box
+                     name=selected_column,
+                     showlegend=False,
+                     hoverinfo='y',
+                     )])
+
+    # If a point is selected, add a marker for the selected point on the box plot
+    if selected_point_info and 'lat' in selected_point_info and 'lon' in selected_point_info:
+        lat = selected_point_info['lat']
+        lon = selected_point_info['lon']
+        selected_row = df[(df['Latitude'] == lat) &
+                          (df['Longitude'] == lon)].iloc[0]
+        selected_value = selected_row[selected_column]
+
+        fig.add_trace(go.Scatter(
+            x=[selected_column], y=[selected_value], mode='markers',
+            marker=dict(color='red', size=10), name='point', hoverinfo='y',
+            showlegend=True))
+
+    # Adjust the margins
+    fig.update_layout(
+        # title=f'Box Plot of {selected_column}',  # Set the title
+        # title_x=0.4,  # Center the title
+        margin=dict(t=0, l=40, b=20, r=40),  # Margin of plot
+        legend=dict(x=0.82, y=1.0),
+        height=300,
+        width=290,
+    ),
+
     return fig
 
 
+# Callback to store the selected point information when a point is clicked on the map
+@app.callback(
+    Output('selected_point_info', 'children'),
+    [Input('ocean_map', 'clickData')]
+)
+def store_selected_point_info(clickData):
+    if clickData:
+        selected_point_info = clickData['points'][0]
+        return selected_point_info
+    else:
+        return None
+
+
 # ---------- Ocean map - Plot sample locations ----------
+
+# Define your list of colors
+custom_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+                 '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+
+# Define the labels dictionary
+legend_labels = {
+    "Marine biome_D": "Marine biome",
+    "OS region": "Ocean and sea region",
+    "Depth Layer Zone_new": "Depth layer zone",
+    "BG Province": "Biogeographical province"
+}
+
+
 @app.callback(
     [Output('ocean_map', 'figure'),
      Output('filtered-count', 'children')],
     [Input('year_range_slider', 'value'),
-     Input('marine_biomes', 'value'),
      Input('depths', 'value'),
      Input('temperatures', 'value'),
-     Input('env_features', 'value')]
-)
-def plot_samples_map(year_range, marine_biome, depth, temperature, env_feature):
+     Input('map-color-input', 'value')])
+def plot_samples_map(year_range, depth, temperature, color_by):
 
     dff = df[df['Year'].between(year_range[0], year_range[1])]
-    dff = dff[dff['Marine biome_D'].isin(marine_biome)]
 
     dff = dff[dff['Depth-NaN'].isin(depth)]
     dff = dff[dff['Temperature-NaN'].isin(temperature)]
-    dff = dff[dff['Env feature (abbreviation)'].isin(env_feature)]
 
     fig = px.scatter_mapbox(dff,
                             lat=dff['Latitude'],
                             lon=dff['Longitude'],
-                            color='OS region',
+                            color=color_by,
+                            color_discrete_sequence=custom_colors,
                             zoom=0.8, height=700,
                             title=None, opacity=.5,
                             custom_data=['OS region',
@@ -372,9 +435,22 @@ def plot_samples_map(year_range, marine_biome, depth, temperature, env_feature):
     # Update the hover template
     fig.update_traces(hovertemplate=hover_template)
 
-    fig.update_layout(mapbox_style='mapbox://styles/kortplotly/clsyukswv002401p8a4xtbbm3',
-                      margin={"r": 0, "l": 0, "b": 0, "t": 0},
-                      showlegend=False)
+    # Update the legend title dynamically based on the selected option
+    # Default to "Legend" if color_by not found
+
+    legend_title = legend_labels.get(color_by, "Legend")
+    fig.update_layout(
+        mapbox_style='mapbox://styles/kortplotly/clsyukswv002401p8a4xtbbm3',
+        margin={"r": 0, "l": 0, "b": 0, "t": 0},
+        showlegend=True,
+        legend=dict(
+            orientation="h",
+            x=0,
+            yanchor="top",
+            y=1.05,
+            title=legend_title  # Set the legend title dynamically
+        )
+    )
 
     # to preserve the UI settings such as zoom and panning in the update
     fig['layout']['uirevision'] = 'unchanged'
