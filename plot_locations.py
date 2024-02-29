@@ -1,3 +1,4 @@
+import plotly.graph_objects as go
 from dash_bootstrap_templates import load_figure_template
 import pandas as pd
 import os
@@ -43,11 +44,19 @@ df['Temperature-NaN'] = df['Temperature'].apply(
 
 temperature_values = df['Temperature-NaN'].unique()
 
-df['Temperature'].fillna('NaN', inplace=True)  # NaN -> 'Unknown'
+df['Temperature'].fillna('NaN', inplace=True)  # NaN -> 'NaN'
 
+df['Phosphate'].fillna('NaN', inplace=True)  # NaN -> 'NaN'
+df['Nitrate_D'].fillna('NaN', inplace=True)  # NaN -> 'NaN'
+df['Nitrate_M'].fillna('NaN', inplace=True)
+df['Chlorophyll_D'].fillna('NaN', inplace=True)  # NaN -> 'NaN'
+df['Chlorophyll_M'].fillna('NaN', inplace=True)
+df['NPP C (30)_D'].fillna('NaN', inplace=True)
+df['NPP C (8)_D'].fillna('NaN', inplace=True)
+df['Sea surface temp_M'].fillna('NaN', inplace=True)
 
 # ---- Marine biome (depth) ----
-df['Marine biome_D'].fillna('Unknown', inplace=True)  # NaN -> 'Unknown'
+df['Marine biome_D'].fillna('NaN', inplace=True)  # NaN -> 'NaN'
 
 marine_biomes = df['Marine biome_D'].unique()
 
@@ -68,15 +77,18 @@ env_features = df['Env feature (abbreviation)'].unique()
 
 
 # ---------- Data for scatter plot and dropdown menus ----------
-cols_x = ['Temperature', 'Depth ref', 'Env feature (abbreviation)',
-          'Nitrate_D', 'Nitrate_M', 'Phosphate', 'NPP C (30)_D', 'NPP C (30)_M']
+cols_x = ['Temperature', 'Sea surface temp_M', 'Depth ref', 'Depth top',
+          'Depth bot', 'Env feature (abbreviation)',
+          'Nitrate_D', 'Nitrate_M', 'Chlorophyll_D', 'Chlorophyll_M',
+          'Phosphate', 'NPP C (30)_D']
 
 # Options for dropdown menu (x-axis)
 scatter_options_x = [{'label': col, 'value': col} for col in cols_x]
 
 
-cols_y = ['Species div', 'Species miTAG chao',
-          'Species miTAG ace', 'Species richness', 'Functional richness']
+cols_y = ['Species div', 'Species miTAG chao', 'Species miTAG ace',
+          'Species richness', 'Functional richness', 'Sea surface temp_M',
+          'Depth top', 'Depth bot', 'Nitrate_M', 'Chlorophyll_M']
 
 # Options for dropdown menu (y-axis)
 scatter_options_y = [{'label': col, 'value': col} for col in cols_y]
@@ -90,7 +102,7 @@ SIDEBAR_STYLE = {
     "paddingLeft": '20px',
     "paddingRight": '10px',
     "paddingTop": "32px",
-    "paddingBottom": '10px',  # top/bottom (32 pixels), left/right (16 pixels)
+    "paddingBottom": '10px',
     "background-color": "#f8f9fa",
 }
 
@@ -182,6 +194,19 @@ info_box = dbc.Card([
 ], style=info_box_style)
 
 
+box_options = [
+    {'label': 'Temperature', 'value': 'Temperature'},
+    {'label': 'Sea Surface Temp', 'value': 'Sea surface temp_M'},
+    {'label': 'Nitrate (D)', 'value': 'Nitrate_D'},
+    {'label': 'Nitrate (M)', 'value': 'Nitrate_M'},
+    {'label': 'Phosphate', 'value': 'Phosphate'},
+    {'label': 'Depth (D)', 'value': 'Depth ref'},
+    {'label': 'Depth (M)', 'value': 'Depth top'},
+    {'label': 'Chlorophyll (D)', 'value': 'Chlorophyll_D'},
+    {'label': 'Chlorophyll (M)', 'value': 'Chlorophyll_M'},
+]
+
+
 # ---------- Plotly, dash and mapbox ----------
 px.set_mapbox_access_token(
     'pk.eyJ1Ijoia29ydHBsb3RseSIsImEiOiJjbHBoNDZmZm0wMHUyMnJwNm5yM3RtcjY1In0.qxuHfESjhBp1wqT9ByZc0g')
@@ -210,8 +235,9 @@ app.layout = html.Div([
                 sidebar, width=2),  # Sidebar
              dbc.Col(
                 html.Div([  # Ocean map
-                    dcc.Graph(id='ocean_map', clickData={
-                        'points': [{'customdata': ['']}]}),
+                    dcc.Graph(id='ocean_map',
+                              clickData={'points': [{'customdata': ''}]}
+                              ),
                     dcc.Input(id='dummy-input', type='hidden',
                               value='trigger-callback'),
                 ]), width=7, className="scatter_map"),
@@ -223,12 +249,7 @@ app.layout = html.Div([
                             html.H5("Attribute for box plot"),
                             dcc.Dropdown(
                                 id='boxplot_dropdown',
-                                options=[
-                                    {'label': 'Temperature',
-                                        'value': 'Temperature'},
-                                    {'label': 'Phosphate', 'value': 'Phosphate'},
-                                    {'label': 'Depth ref', 'value': 'Depth ref'}
-                                ],
+                                options=box_options,
                                 value='Temperature',  # Default value
                                 clearable=False,
                                 style={'width': '90%', 'marginBottom': '10px',
@@ -250,7 +271,7 @@ app.layout = html.Div([
         dbc.Row([  # Row with scatter plot and bar chart
             dbc.Col(
                 html.Div([  # Dropdown for scatter plot
-                    html.P('Choose an attribute for x-axis:',
+                    html.P('Attribute for x-axis:',
                            style={'fontWeight': "bold",
                                   'marginTop': 30,
                                   'marginBottom': 5,
@@ -261,7 +282,7 @@ app.layout = html.Div([
                                  clearable=False,
                                  value='Temperature',
                                  style={'marginTop': 0}),
-                    html.P('Choose an attribute for y-axis:',
+                    html.P('Attribute for y-axis:',
                            style={'fontWeight': "bold",
                                   'marginTop': 30,
                                   'marginBottom': 5,
@@ -271,6 +292,23 @@ app.layout = html.Div([
                                  multi=False,
                                  clearable=False,
                                  value='Species richness',
+                                 style={'marginTop': 0}),
+                    html.P('Color by attribute:',
+                           style={'fontWeight': "bold",
+                                  'marginTop': 30,
+                                  'marginBottom': 5,
+                                  'font-size': 16}),
+                    dcc.Dropdown(id='scatter_color',
+                                 options=[
+                                    {'label': 'Temperature',
+                                        'value': 'Temperature'},
+                                    {'label': 'Latitude', 'value': 'Latitude'},
+                                    {'label': 'Depth', 'value': 'Depth ref'},
+                                    {'label': 'Depth top', 'value': 'Depth top'},
+                                 ],
+                                 multi=False,
+                                 clearable=False,
+                                 value='Latitude',
                                  style={'marginTop': 0}),
 
                 ]), width=2),
@@ -288,48 +326,15 @@ app.layout = html.Div([
 ])
 
 
-# ---------- Scatter plot (updates based on selected attributes) ----------
-@app.callback(
-    Output('scatter_plot', 'figure'),
-    [Input('year_range_slider', 'value'),
-     Input('scatter_dropdown_x', 'value'),
-     Input('scatter_dropdown_y', 'value')]
-)
-def update_scatter_plot(year_range, attribute_x, attribute_y):
-
-    dff = df[df['Year'].between(year_range[0], year_range[1])]
-
-    plot_columns_x = ['Temperature']
-    plot_columns_y = ['Species richness']
-
-    # Add selected attributes to the plot columns if they exist
-    if attribute_x:
-        plot_columns_x[0] = attribute_x
-
-    if attribute_y:
-        plot_columns_y[0] = attribute_y
-
-    print(f"Plot Columns x: {plot_columns_x} and y: {plot_columns_y}")
-
-    # Create scatter plot
-    fig = px.scatter(dff,
-                     height=600,
-                     x=plot_columns_x[0],
-                     y=plot_columns_y[0],
-                     color='Latitude',
-                     hover_name='Year',
-                     title='Scatter Plot')
-
-    return fig
-
-
 # ---------- Box plot ----------
+
 @app.callback(
     Output('box_plot', 'figure'),
     [Input('selected_point_info', 'children'),
-     Input('boxplot_dropdown', 'value')]
+     Input('boxplot_dropdown', 'value'),
+     Input('map-color-input', 'value')]
 )
-def update_box_plot(selected_point_info, selected_column):
+def update_box_plot(selected_point_info, selected_column, color_category):
 
     # fig = px.box(df, y=selected_column, title=f'Box Plot of {selected_column}')
 
@@ -338,7 +343,7 @@ def update_box_plot(selected_point_info, selected_column):
                      boxpoints=False,  # 'all', 'outliers', or 'suspectedoutliers'
                      jitter=0.7,  # add some jitter for a better separation between points
                      pointpos=-1.8,  # relative position of points wrt box
-                     name=selected_column,
+                     name="All",  # Set the name for the first box plot
                      showlegend=False,
                      hoverinfo='y',
                      )])
@@ -348,23 +353,62 @@ def update_box_plot(selected_point_info, selected_column):
         lat = selected_point_info['lat']
         lon = selected_point_info['lon']
         selected_row = df[(df['Latitude'] == lat) &
-                          (df['Longitude'] == lon)].iloc[0]
-        selected_value = selected_row[selected_column]
+                          (df['Longitude'] == lon)]
 
-        fig.add_trace(go.Scatter(
-            x=[selected_column], y=[selected_value], mode='markers',
-            marker=dict(color='red', size=10), name='point', hoverinfo='y',
-            showlegend=True))
+        if not selected_row.empty:
+            selected_row = selected_row.iloc[0]
+            selected_value = selected_row[selected_column]
+
+            if selected_value != "NaN":
+                # If selected value is not NaN, show legend as "point"
+                legend_name = 'Selected <br>point'
+                marker_style = dict(color='red', size=10)
+            else:
+                # If selected value is NaN, show legend as "NaN"
+                legend_name = 'NaN'
+                marker_style = dict(color='black', size=10)
+
+            fig.add_trace(go.Scatter(
+                x=["All"], y=[selected_value], mode='markers',
+                marker=marker_style, name=legend_name, hoverinfo='y',
+                showlegend=True))
+
+            # If a color category is selected, add a box plot only for the selected subcategory
+            if color_category:
+                selected_category = selected_row[color_category]
+                category_data = df[df[color_category] ==
+                                   selected_category][selected_column]
+                fig.add_trace(go.Box(
+                    y=category_data,
+                    boxpoints=False,
+                    jitter=0.7,
+                    pointpos=-1.8,
+                    name=f"{selected_category}",
+                    showlegend=False,
+                    hoverinfo='y'
+                ))
+
+                # Add red marker for selected point in the second box plot
+                fig.add_trace(go.Scatter(
+                    x=[selected_category],
+                    y=[selected_value],
+                    mode='markers',
+                    marker=dict(color='red', size=10),
+                    name='Point',
+                    hoverinfo='y',
+                    showlegend=False
+                ))
 
     # Adjust the margins
     fig.update_layout(
-        # title=f'Box Plot of {selected_column}',  # Set the title
-        # title_x=0.4,  # Center the title
-        margin=dict(t=0, l=40, b=20, r=40),  # Margin of plot
-        legend=dict(x=0.82, y=1.0),
+        title=f'{selected_column}',  # Set the title
+        title_x=0.5,  # Center the title
+        title_y=0.94,
+        margin=dict(t=40, l=40, b=20, r=0),  # Margin of plot
+        legend=dict(x=0.82, y=1.05),
         height=300,
-        width=290,
-    ),
+        width=310,
+    )
 
     return fig
 
@@ -385,7 +429,7 @@ def store_selected_point_info(clickData):
 # ---------- Ocean map - Plot sample locations ----------
 
 # Define your list of colors
-custom_colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd',
+custom_colors = ['#ff7f0e', '#1f77b4', '#2ca02c', '#d62728', '#9467bd',
                  '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
 # Define the labels dictionary
@@ -418,19 +462,24 @@ def plot_samples_map(year_range, depth, temperature, color_by):
                             color_discrete_sequence=custom_colors,
                             zoom=0.8, height=700,
                             title=None, opacity=.5,
-                            custom_data=['OS region',
-                                         'Year', 'Date', 'Marine biome_D',
+                            custom_data=['Sample ID', 'OS region',
+                                         'Date', 'Marine biome_D',
                                          'Temperature', 'Depth ref',
-                                         'Depth Layer Zone'],
+                                         'Depth nominal', 'Depth Layer Zone',
+                                         'Sea ice conc', 'NPP C (8)_D'],
                             )
 
     # Define a custom hover template
     hover_template = '<b>%{customdata[0]}</b><br>' \
+        'Region: %{customdata[1]}<br>' \
         'Date: %{customdata[2]}<br>' \
         'Marine biome: %{customdata[3]}<br>' \
         'Temperature: %{customdata[4]}<br>' \
         'Depth: %{customdata[5]}<br>' \
-        '%{customdata[6]}<extra></extra>'
+        'Depth nominal: %{customdata[6]}<br>' \
+        '%{customdata[7]}<br>' \
+        'Sea Ice Concentration: %{customdata[8]}<br>' \
+        'Net primary production of carbon: %{customdata[9]}<extra></extra>'
 
     # Update the hover template
     fig.update_traces(hovertemplate=hover_template)
@@ -493,21 +542,46 @@ def display_selected_point_info(clickData):
             if not selected_rows.empty:
                 selected_row = selected_rows.iloc[0]
 
-                os_region = selected_row['OS region']
-                temperature = selected_row['Temperature']
+                sample_id = selected_row['Sample ID']
                 date = selected_row['Date']
+                os_region = selected_row['OS region']
                 marine_biome = selected_row['Marine biome_D']
-                depth = selected_row['Depth ref']
+
                 depth_layer = selected_row['Depth Layer Zone']
+                depth_D = selected_row['Depth ref']
+                depth_M = selected_row['Depth top']
+                temperature = selected_row['Temperature']
+                sea_surface_temp = selected_row['Sea surface temp_M']
+
+                nitrate_D = selected_row['Nitrate_D']
+                nitrate_M = selected_row['Nitrate_M']
+                phosphate = selected_row['Phosphate']
+                chlorophyll_D = selected_row['Chlorophyll_D']
+                chlorophyll_M = selected_row['Chlorophyll_M']
+                carbon_production = selected_row['NPP C (30)_D']
 
                 if lat is not None and lon is not None:
                     data = [
-                        {"Attribute": "OS region", "Value": os_region},
-                        {"Attribute": "Temperature", "Value": temperature},
+                        {"Attribute": "Sample ID", "Value": sample_id},
                         {"Attribute": "Date", "Value": date},
+                        {"Attribute": "Region", "Value": os_region},
                         {"Attribute": "Marine biome", "Value": marine_biome},
-                        {"Attribute": "Depth", "Value": depth},
                         {"Attribute": "Depth Layer Zone", "Value": depth_layer},
+                        {"Attribute": "Depth (D)", "Value": depth_D},
+                        {"Attribute": "Depth (M)", "Value": depth_M},
+                        {"Attribute": "Temperature", "Value": temperature},
+                        {"Attribute": "Sea Surface Temp",
+                            "Value": sea_surface_temp},
+
+                        {"Attribute": "Nitrate (D)", "Value": nitrate_D},
+                        {"Attribute": "Nitrate (M)", "Value": nitrate_M},
+                        {"Attribute": "Phosphate", "Value": phosphate},
+                        {"Attribute": "Chlorophyll (D)",
+                         "Value": chlorophyll_D},
+                        {"Attribute": "Chlorophyll (M)",
+                         "Value": chlorophyll_M},
+                        {"Attribute": "Carbon production",
+                            "Value": carbon_production},
                     ]
 
                     # Define the DataTable for selected point information
@@ -530,7 +604,8 @@ def display_selected_point_info(clickData):
                             # 'backgroundColor': 'rgb(210, 210, 210)',
                             'color': 'black',
                             'fontWeight': 'bold'
-                        }
+                        },
+                        page_size=8,   # Display 7 values per page
                     )
 
                     return dbc.Card([
@@ -544,6 +619,42 @@ def display_selected_point_info(clickData):
                     ], style=info_box_style_a)
     # If no point is clicked, display default message
     return info_box
+
+
+# ---------- Scatter plot (updates based on selected attributes) ----------
+@app.callback(
+    Output('scatter_plot', 'figure'),
+    [Input('year_range_slider', 'value'),
+     Input('scatter_dropdown_x', 'value'),
+     Input('scatter_dropdown_y', 'value'),
+     Input('scatter_color', 'value')]
+)
+def update_scatter_plot(year_range, attribute_x, attribute_y, color_by):
+
+    dff = df[df['Year'].between(year_range[0], year_range[1])]
+
+    plot_columns_x = ['Temperature']
+    plot_columns_y = ['Species richness']
+
+    # Add selected attributes to the plot columns if they exist
+    if attribute_x:
+        plot_columns_x[0] = attribute_x
+
+    if attribute_y:
+        plot_columns_y[0] = attribute_y
+
+    print(f"Plot Columns x: {plot_columns_x} and y: {plot_columns_y}")
+
+    # Create scatter plot
+    fig = px.scatter(dff,
+                     height=600,
+                     x=plot_columns_x[0],
+                     y=plot_columns_y[0],
+                     color=color_by,
+                     hover_name='Year',
+                     title='Scatter Plot')
+
+    return fig
 
 
 # ---------- Bar chart (sample counts) ----------
@@ -566,4 +677,4 @@ def plot_sample_count(year_range):
 
 # start the web application
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8056)
+    app.run_server(debug=True, port=8055)

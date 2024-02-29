@@ -88,6 +88,9 @@ new_column_names = {
     'Species div (originally reported as miTAG....).1': 'Species miTAG ace',
     'Species div (originally reported as miTAG....).2': 'Species miTAG shannon',
     'Ssphi sat [%] (at the sampling location for ...)': 'Ssphi sat',
+    "SST grad h [°C/100 km] (Calculated (d'Ovidio et al. 2...)": 'Sea surface temp_D',
+    'SST grad h [°C/100 km] (at the sampling location and ...)': 'Sea surface temp_M_2',
+    'SST grad h [°C/100 km] (at the sampling location for ...)': 'Sea surface temp_M',
 
     'TSS [mg/l] (at the sampling location for ...)': 'Total suspended matter',
     'Tpot [°C] (in the selected environmental...)': 'Temperature',
@@ -152,7 +155,8 @@ replacements = {
     'Mesopelagic Zone & Marine Oxygen Minimum Zone': 'Mesopelagic Zone',
     'Mesopelagic Zone & Nutricline': 'Mesopelagic Zone',
     'Marine Epipelagic Mixed Layer & Thermocline': 'Marine Epipelagic Mixed Layer',
-    'Water Layer With No Specific Feature & Near Bottom': 'Near Bottom'
+    'Water Layer With No Specific Feature & Near Bottom': 'Near Bottom',
+    'Water Layer With No Specific Feature': 'No Specific Feature',
 }
 
 # Replace values using the dictionary
