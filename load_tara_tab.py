@@ -5,6 +5,22 @@ os.chdir("/Users/annaolsen/Desktop/Speciale/DS_thesis/data")
 print(os.getcwd())
 
 
+# Read the Excel file
+df1 = pd.read_excel('TARA_SAMPLES_CONTEXT_ENV-DEPTH-NUT_20170515.xlsx',
+                    header=None, skiprows=20)
+
+# Reset index and set the header to the second row
+df1.columns = df1.iloc[0]
+df1 = df1.iloc[1:].reset_index(drop=True)
+
+# Remove the "COMMENT" column and drop the second row
+df1.drop(columns=['COMMENT'], inplace=True)
+df1.drop(index=0, inplace=True)
+
+# Save the DataFrame as a CSV file
+df1.to_csv('Tara_Env_Nut.csv', index=False)
+
+
 def main():
     depth_file_path = "TARA_sample_enviro.tab"
     df = read_tab_file(depth_file_path)
@@ -21,6 +37,10 @@ def main():
     meso_sl_file_path = "TARA_SAMPLES_CONTEXT_ENV-WATERCOLUMN.tab"
     df = read_tab_file(meso_sl_file_path)
     df.to_csv("Tara_Env_Meso_SampleLocation.csv", index=False)
+
+    osd_file_path = "OSD_registies.tab"
+    df = read_tab_file(osd_file_path)
+    df.to_csv("OSD_data.csv", index=False)
 
 
 def read_tab_file(tab_file_path):
