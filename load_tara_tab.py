@@ -1,5 +1,6 @@
 import pandas as pd
 import os
+import numpy as np
 
 os.chdir("/Users/annaolsen/Desktop/Speciale/DS_thesis/data")
 print(os.getcwd())
@@ -7,17 +8,47 @@ print(os.getcwd())
 
 # Read the Excel file
 df1 = pd.read_excel('TARA_SAMPLES_CONTEXT_ENV-DEPTH-NUT_20170515.xlsx',
-                    header=None, skiprows=20)
+                    header=None, skiprows=17)
+
 
 # Reset index and set the header to the second row
 df1.columns = df1.iloc[0]
 df1 = df1.iloc[1:].reset_index(drop=True)
 
-# Remove the "COMMENT" column and drop the second row
-df1.drop(columns=['COMMENT'], inplace=True)
-df1.drop(index=0, inplace=True)
+# Extract the header and the first 3 rows into info_df
+info_df = df1.iloc[:3]
 
-# Save the DataFrame as a CSV file
+# Extract the header and all rows except the first 3 into df1
+df1 = df1.iloc[4:]
+
+# Remove the "PARAMTER" column and drop the second row
+df1.drop(columns=['PARAMETER'], inplace=True)
+
+df1 = df1.apply(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
+
+# Reset the index for both DataFrames
+info_df.reset_index(drop=True, inplace=True)
+df1.reset_index(drop=True, inplace=True)
+
+new_col_names = ['Sample ID', 'Sample ID (Bio)', 'Sample ID (ENA)', 'Station',
+                 'Event', 'Env feature', 'Depth nominal', 'Depth top/min',
+                 'Depth bot/max', 'Size frac lower', 'Size frac upper',
+                 'Sample material', 'Sample method', 'Sample code/label',
+                 'File name', 'Distance', 'Duration(ISO)',
+                 'Number of observations', 'Nitrite min', 'Nitrite lower',
+                 'Nitrite median', 'Nitrite upper', 'Nitrite max',
+                 'Phosphate min', 'Phosphate lower', 'Phosphate median',
+                 'Phosphate upper', 'Phosphate max', 'Nitrate/Nitrite min',
+                 'Nitrate/Nitrite lower', 'Nitrate/Nitrite median',
+                 'Nitrate/Nitrite upper', 'Nitrate/Nitrite max', 'Silicate min',
+                 'Silicate lower', 'Silicate median', 'Silicate upper',
+                 'Silicate max']
+
+
+df1.columns = new_col_names
+
+# Save the DataFrames as CSV files
+info_df.to_csv('Tara_Nutri_cols.csv', index=False)
 df1.to_csv('Tara_Env_Nut.csv', index=False)
 
 

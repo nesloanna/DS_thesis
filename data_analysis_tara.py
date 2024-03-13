@@ -16,45 +16,28 @@ def main():
     df_depth = pd.read_csv("Tara_Environmental_Depth.csv")
     df_meso = pd.read_csv("Tara_Environmental_Mesoscale.csv")
     df_meso_SL = pd.read_csv("Tara_Env_Meso_SampleLocation.csv")
+    df_nutri = pd.read_csv("Tara_Env_Nut.csv")
 
-    df_bio_u = pd.read_csv("Bio_Unique.csv")
-    df_meso_u = pd.read_csv("Meso_Unique.csv")
-    df_depth_u = pd.read_csv("Depth_Unique.csv")
+    # df_bio_u = pd.read_csv("Bio_Unique.csv")
+    # df_meso_u = pd.read_csv("Meso_Unique.csv")
+    # df_depth_u = pd.read_csv("Depth_Unique.csv")
 
-    # Create dataframes with info about the data
-    tara_bio_info_df = create_info_df(df_bio)
-    tara_depth_info_df = create_info_df(df_depth)
-    tara_meso_info_df = create_info_df(df_meso)
-    meso_SL_info_df = create_info_df(df_meso_SL)
-
-    bio_unique_df = create_info_df(df_bio_u)
-    meso_unique_df = create_info_df(df_meso_u)
-    depth_unique_df = create_info_df(df_depth_u)
-
-    # Save info dataframes to CSV files
-    tara_bio_info_df.to_csv("Tara_Bio_Info.csv", index=False)
-    tara_depth_info_df.to_csv("Tara_Depth_Info.csv", index=False)
-    tara_meso_info_df.to_csv("Tara_Meso_Info.csv", index=False)
-    meso_SL_info_df.to_csv("Tara_Meso_SL_Info.csv", index=False)
-
-    bio_unique_df.to_csv("Bio_Unique_Info.csv", index=False)
-    meso_unique_df.to_csv("Meso_Unique_Info.csv", index=False)
-    depth_unique_df.to_csv("Depth_Unique_Info.csv", index=False)
-
-    # merged_info_df.to_csv("Tara_merged_info.csv", index=False)
+    # Create and save info dataframes to CSV files
+    create_info_df(df_bio, "Tara_Bio_Info.csv")
+    create_info_df(df_depth, "Tara_Depth_Info.csv")
+    create_info_df(df_meso, "Tara_Meso_Info.csv")
+    create_info_df(df_meso_SL, "Tara_Meso_SL_Info.csv")
+    create_info_df(df_nutri, "Tara_Nutri_Info.csv")
 
     # Print info about dataframes
     count_elements(df_bio, "bio")
     count_elements(df_depth, "depth")
     count_elements(df_meso, "meso")
     count_elements(df_meso_SL, "meso (sample location)")
-
-    count_elements(df_bio_u, "Bio (unique)")
-    count_elements(df_meso_u, "Meso (unique)")
-    count_elements(df_depth_u, "Depth (unique)")
+    count_elements(df_nutri, "nutrients")
 
 
-def create_info_df(df):
+def create_info_df(df, file_name):
 
     rows = []
 
@@ -81,6 +64,8 @@ def create_info_df(df):
         rows.append(row)
 
     info_df = pd.DataFrame(rows)
+
+    info_df.to_csv(file_name, index=False)
 
     return info_df
 
