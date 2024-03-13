@@ -35,3 +35,7 @@ data/Bio_Unique.csv
 data/Depth_Unique.csv
 data/Bio_Unique_Info.csv
 data/Depth_Unique_Info.csv
+data/Tara_BMN_Cleaned.csv
+data/Tara_merged_BMN.csv
+data/Tara_Nutri_cols.csv
+data/Tara_Nutri_Info.csv
