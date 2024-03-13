@@ -67,7 +67,7 @@ df['Depth-NaN'] = df['Depth ref'].apply(
 depth_values = df['Depth-NaN'].unique()
 
 df['Depth ref'].fillna('NaN', inplace=True)  # NaN -> 'Unknown'
-
+df['Depth nominal'].fillna('NaN', inplace=True)
 
 # ---- Env feature (depth layer zone) ----
 df['Env feature (abbreviation)'].fillna(
@@ -361,7 +361,7 @@ def update_box_plot(selected_point_info, selected_column, color_category):
 
             if selected_value != "NaN":
                 # If selected value is not NaN, show legend as "point"
-                legend_name = 'Selected <br>point'
+                legend_name = 'Point'
                 marker_style = dict(color='red', size=10)
             else:
                 # If selected value is NaN, show legend as "NaN"
@@ -462,15 +462,18 @@ def plot_samples_map(year_range, depth, temperature, color_by):
                             color_discrete_sequence=custom_colors,
                             zoom=0.8, height=700,
                             title=None, opacity=.5,
-                            custom_data=['Sample ID', 'OS region',
+                            custom_data=['Sample ID',
+                                         'OS region',
                                          'Date', 'Marine biome_D',
                                          'Temperature', 'Depth ref',
                                          'Depth nominal', 'Depth Layer Zone',
-                                         'Sea ice conc', 'NPP C (8)_D'],
+                                         'Sea ice conc', 'NPP C (8)_D',
+                                         'Station'],
                             )
 
     # Define a custom hover template
     hover_template = '<b>%{customdata[0]}</b><br>' \
+        'Station: %{customdata[10]}</b><br>' \
         'Region: %{customdata[1]}<br>' \
         'Date: %{customdata[2]}<br>' \
         'Marine biome: %{customdata[3]}<br>' \
@@ -515,7 +518,7 @@ def plot_samples_map(year_range, depth, temperature, color_by):
 # Define the style for the table
 table_style = {
     'margin-top': '0px',
-    'margin-bottom': '15px',
+    'margin-bottom': '0px',
     'padding': '3px',
     'background-color': '#f0f0f0',
     'line-height': '1.7',
@@ -605,7 +608,7 @@ def display_selected_point_info(clickData):
                             'color': 'black',
                             'fontWeight': 'bold'
                         },
-                        page_size=8,   # Display 7 values per page
+                        page_size=8,   # Display 8 values per page
                     )
 
                     return dbc.Card([
@@ -677,4 +680,4 @@ def plot_sample_count(year_range):
 
 # start the web application
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8055)
+    app.run_server(debug=True, port=8056)
