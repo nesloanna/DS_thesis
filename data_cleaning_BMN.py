@@ -96,3 +96,5 @@ df['Year'] = df['Date/Time'].dt.year
 
 
 df.to_csv("Tara_BMN_Cleaned.csv", index=False)
+
+df = df.sort_values(by='Date')

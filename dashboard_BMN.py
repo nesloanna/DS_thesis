@@ -470,7 +470,8 @@ def plot_samples_map(year_range, phosphate, temperature, color_by):
                                          'Sea Surface Temp', 'Depth top',
                                          'Depth nominal', 'Depth layer zone',
                                          'Sea ice conc', 'Net PP carbon',
-                                         'Station', 'Phosphate median'],
+                                         'Station', 'Phosphate median',
+                                         'Latitude', 'Longitude'],
                             )
 
     # Define a custom hover template
@@ -485,7 +486,8 @@ def plot_samples_map(year_range, phosphate, temperature, color_by):
         'Phosphate: %{customdata[11]}<br>' \
         '%{customdata[7]}<br>' \
         'Sea Ice Concentration: %{customdata[8]}<br>' \
-        'Net primary production of carbon: %{customdata[9]}<extra></extra>'
+        'Net primary production of carbon: %{customdata[9]}<br>' \
+        'Lat: %{customdata[12]}, Lon: %{customdata[13]}<extra></extra>'
 
     # Update the hover template
     fig.update_traces(hovertemplate=hover_template)

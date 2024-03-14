@@ -39,3 +39,8 @@ data/Tara_BMN_Cleaned.csv
 data/Tara_merged_BMN.csv
 data/Tara_Nutri_cols.csv
 data/Tara_Nutri_Info.csv
+data/SST/AQUA_MODIS.20091227_20091231.L3m.8D.SST.sst.9km.nc
+data/Tara_SST.csv
+data/SST/NOAAGlobalTemp_v6.0.0_gridded_s185001_e202401_c20240208T152650.nc
+data/SST/oisst-avhrr-v02r01.20090910.nc
+data/SST/sst.wkmean.1990-present.nc
