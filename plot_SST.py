@@ -18,8 +18,23 @@ print(os.getcwd())
 # Load datasets
 df = pd.read_csv("Tara_SST.csv")
 
+df_2009 = pd.read_csv("Tara_SST_09.csv")
+df_2010 = pd.read_csv("Tara_SST_10.csv")
+df_2011 = pd.read_csv("Tara_SST_11.csv")
+df_2012 = pd.read_csv("Tara_SST_12.csv")
+df_2013 = pd.read_csv("Tara_SST_13.csv")
+
+
+# List of DataFrames
+dfs = [df_2009, df_2010, df_2011, df_2012, df_2013]
+
+# Concatenate DataFrames along rows (vertically)
+df_SST = pd.concat(dfs, ignore_index=True)
+
+df_SST.to_csv("Tara_SST_Plot.csv", index=False)
 
 # Create a function to plot the original points and their closest matches
+
 
 def plot_original_and_closest_matches(df):
 
@@ -52,11 +67,11 @@ plot_original_and_closest_matches(df)
 
 # Plot comparison
 plt.figure(figsize=(10, 6))
-plt.plot(df['Sea Surface Temp'], label='SST from TARA', color='mediumblue')
-plt.plot(df['closest_sst'], label='SST from NOAA', color='darkorange')
+plt.plot(df['Sea Surface Temp'], label='Tara', color='mediumblue')
+plt.plot(df['closest_sst'], label='NOAA (weekly)', color='darkorange')
 plt.xlabel('Index')
 plt.ylabel('Temperature')
-plt.title('SST - TARA vs. NOAA')
+plt.title('SST (weekly) - Tara vs. NOAA')
 plt.legend()
 plt.grid(True)
 plt.show()
@@ -71,12 +86,52 @@ for region, region_df in grouped_df:
     # Plot comparison for the current region
     plt.figure(figsize=(10, 6))
     plt.plot(region_df['Date'], region_df['Sea Surface Temp'],
-             label='SST from TARA', color='mediumblue')
+             label='Tara', color='mediumblue')
     plt.plot(region_df['Date'], region_df['closest_sst'],
-             label='SST from NOAA', color='darkorange')
+             label='NOAA (weekly)', color='darkorange')
     plt.xlabel('Date', fontsize=12)
     plt.ylabel('Temperature (°C)', fontsize=12)
-    plt.title(f'Temperature for {region}')
+    plt.title(f'SST for {region}')
+    plt.legend()
+    plt.grid(True)
+    # Rotate x-axis labels for better readability
+    plt.xticks(rotation=45, fontsize=10)
+    # plt.gca().xaxis.set_major_locator(plt.matplotlib.dates.MonthLocator())
+    # Customize x-axis tick labels to display every other label
+    # Adjust the number of bins as needed
+    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(nbins=10))
+
+    plt.tight_layout()  # Adjust layout to prevent overlapping labels
+    plt.show()
+
+
+# Plot comparison 2013
+plt.figure(figsize=(10, 6))
+plt.plot(df_SST['Sea Surface Temp'], label='Tara', color='mediumblue')
+plt.plot(df_SST['sst_daily'], label='NOAA (daily)', color='darkorange')
+plt.xlabel('Index')
+plt.ylabel('Temperature')
+plt.title('SST (daily) - Tara vs. NOAA')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+
+# Group DataFrame by 'OS region'
+grouped_df = df_SST.groupby('OS region')
+
+# Iterate over each group and create a separate plot for each region
+for region, region_df in grouped_df:
+
+    # Plot comparison for the current region
+    plt.figure(figsize=(10, 6))
+    plt.plot(region_df['Date'], region_df['Sea Surface Temp'],
+             label='Tara', color='mediumblue')
+    plt.plot(region_df['Date'], region_df['sst_daily'],
+             label='NOAA (daily)', color='darkorange')
+    plt.xlabel('Date', fontsize=12)
+    plt.ylabel('Temperature (°C)', fontsize=12)
+    plt.title(f'SST (daily) for {region}')
     plt.legend()
     plt.grid(True)
     # Rotate x-axis labels for better readability

@@ -22,6 +22,9 @@ df = df.dropna(subset=['Latitude', 'Longitude'])
 # Reset the index after dropping rows
 df.reset_index(drop=True, inplace=True)
 
+
+df_sst = pd.read_csv("Tara_SST_Plot.csv")
+
 # df = df[:1000]
 
 all_data_points = len(df)
@@ -480,17 +483,39 @@ def plot_samples_map(year_range, phosphate, temperature, color_by):
         'Region: %{customdata[1]}<br>' \
         'Date: %{customdata[2]}<br>' \
         'Marine biome: %{customdata[3]}<br>' \
-        'Temperature: %{customdata[4]}<br>' \
+        'Temperature: %{customdata[4]:.2f}<br>' \
         'Depth: %{customdata[5]}<br>' \
         'Depth nominal: %{customdata[6]}<br>' \
         'Phosphate: %{customdata[11]}<br>' \
         '%{customdata[7]}<br>' \
         'Sea Ice Concentration: %{customdata[8]}<br>' \
         'Net primary production of carbon: %{customdata[9]}<br>' \
-        'Lat: %{customdata[12]}, Lon: %{customdata[13]}<extra></extra>'
+        'Lat: %{customdata[12]:.3f}, Lon: %{customdata[13]:.3f}<extra></extra>'
 
     # Update the hover template
     fig.update_traces(hovertemplate=hover_template)
+
+    # Add points from df2 as a separate scatter plot
+    fig.add_scattermapbox(
+        lat=df_sst['sst_lat'],
+        lon=df_sst['sst_lon'],
+        mode='markers',
+        # marker=dict(color=df_sst['OS region'],
+        #             colorscale='Viridis',  # Use the same color scale as the main plot
+        #             # Add colorbar for temperature
+        #             colorbar=dict(title='OS region')),
+        text=df_sst['Sample ID'],  # Display Sample ID as hover text
+        name='Additional Points',  # Name for the legend
+        # Custom data for hover
+        customdata=df_sst[['Sample ID', 'sst_daily', 'Sea Surface Temp',
+                           'sst_lat', 'sst_lon', 'Latitude', 'Longitude']],
+        hovertemplate="<b>%{customdata[0]}</b><br>" +
+        "Temperature (SST): %{customdata[1]:.2f}<br>" +
+        "Tara SST: %{customdata[2]:.2f}<br>" +
+        "Lat: %{customdata[3]}, Lon: %{customdata[4]}<br>" +
+        "(Tara Lat: %{customdata[5]:.3f}, Lon: %{customdata[6]:.3f}<extra></extra>"
+
+    )
 
     # Update the legend title dynamically based on the selected option
     # Default to "Legend" if color_by not found

@@ -1,15 +1,13 @@
-import cartopy.crs as ccrs
-import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import xarray as xr
 import numpy as np
-import geopandas as gpd
+
 
 import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
-# Define the directory where you want to save the data
+
 data_dir = "/Users/annaolsen/Desktop/Speciale/DS_thesis/data"
 
 os.chdir(data_dir)
@@ -28,9 +26,6 @@ dates = df['Date'].unique()
 
 # Load external SST data
 sst_data = xr.open_dataset("SST/sst.wkmean.1990-present.nc")
-
-# Convert the datetime format to date format
-# sst_date = sst_data['time'].dt.date
 
 # Convert latitude and longitude to match the format of the SST dataset
 # Round latitude to match resolution of SST data
@@ -51,7 +46,6 @@ sst_data = sst_data.sortby('lon')
 # Access the 'time' variable and extract its values
 # time_values = sst_data['time'].values
 
-# Find unique values
 # unique_time_values = set(time_values)
 
 # Convert each datetime object to date
@@ -59,10 +53,8 @@ sst_data = sst_data.sortby('lon')
 
 # unique_date_values = sorted(unique_date_values)
 
-
 # unique_date_values = [str(date).replace(
 #     "numpy.datetime64('", "").replace("')", "") for date in unique_date_values]
-
 
 # Print the unique date values
 # print(unique_date_values)
@@ -74,16 +66,6 @@ sst_data['time'] = pd.to_datetime(sst_data['time'].values)
 
 # Convert the 'time' column to datetime type in DataFrame df
 df['Date'] = pd.to_datetime(df['Date'])
-
-
-# # Create a function to find the closest match for a given date
-# def find_closest_date(date, sst_data):
-#     return pd.to_datetime(sst_data.sel(time=date, method='nearest')['time'].values)
-
-
-# # Apply the function to each date in 'df'
-# df['closest_match'] = df['Date'].apply(
-#     lambda x: find_closest_date(x, sst_data))
 
 
 # Create a function to find the closest match for a given date, latitude, and longitude
