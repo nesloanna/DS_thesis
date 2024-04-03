@@ -1,0 +1,80 @@
+Number 1
+Maximum intensity: 3.8950168892911616 deg. C
+Average intensity: 2.7996994411017657 deg. C
+Cumulative intensity: 50.39458993983178 deg. C-days
+Duration: 18 days
+Start date: 22 April 2003
+End date: 09 May 2003
+
+Number 2
+Maximum intensity: 4.863341195219654 deg. C
+Average intensity: 3.0767923699314608 deg. C
+Cumulative intensity: 49.22867791890337 deg. C-days
+Duration: 16 days
+Start date: 30 May 1994
+End date: 14 June 1994
+
+Number 3
+Maximum intensity: 3.8247925894331978 deg. C
+Average intensity: 2.668073329413119 deg. C
+Cumulative intensity: 42.689173270609906 deg. C-days
+Duration: 16 days
+Start date: 19 February 1984
+End date: 05 March 1984
+
+Number 4
+Maximum intensity: 5.104835075251861 deg. C
+Average intensity: 3.8220716057341466 deg. C
+Cumulative intensity: 42.042787663075615 deg. C-days
+Duration: 11 days
+Start date: 17 January 1998
+End date: 27 January 1998
+
+Number 5
+Maximum intensity: 3.9099741520686297 deg. C
+Average intensity: 2.791139651962837 deg. C
+Cumulative intensity: 41.86709477944255 deg. C-days
+Duration: 15 days
+Start date: 27 August 1984
+End date: 10 September 1984
+
+Number 6
+Maximum intensity: 5.10528861574651 deg. C
+Average intensity: 3.536497831944035 deg. C
+Cumulative intensity: 38.90147615138439 deg. C-days
+Duration: 11 days
+Start date: 25 September 2008
+End date: 05 October 2008
+
+Number 7
+Maximum intensity: 3.9264374172615284 deg. C
+Average intensity: 2.8805588943898806 deg. C
+Cumulative intensity: 37.44726562706845 deg. C-days
+Duration: 13 days
+Start date: 25 October 2002
+End date: 06 November 2002
+
+Number 8
+Maximum intensity: 3.9750150512300344 deg. C
+Average intensity: 2.666080896010576 deg. C
+Cumulative intensity: 37.32513254414806 deg. C-days
+Duration: 14 days
+Start date: 11 February 2002
+End date: 24 February 2002
+
+Number 9
+Maximum intensity: 3.94135756115697 deg. C
+Average intensity: 2.1640869777732643 deg. C
+Cumulative intensity: 34.62539164437223 deg. C-days
+Duration: 16 days
+Start date: 05 August 1987
+End date: 20 August 1987
+
+Number 10
+Maximum intensity: 3.938815800125015 deg. C
+Average intensity: 2.7157587703544253 deg. C
+Cumulative intensity: 32.589105244253105 deg. C-days
+Duration: 12 days
+Start date: 21 July 2005
+End date: 01 August 2005
+
