@@ -71,3 +71,5 @@ data/SST/sst.day.mean.2010.nc
 data/SST/sst.day.mean.2011.nc
 data/SST/sst.day.mean.2012.nc
 data/SST/sst.day.mean.2013.nc
+*.nc
+*.csv

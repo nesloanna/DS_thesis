@@ -34,11 +34,11 @@ new_column_names = [
     'Sea surface temp grad', 'Strain sub-mesoscale', 'u', 'v',
     'Okubo-Weiss', 'Max Lyapunov Exp', 'Residence time',
     'Latitude.2', 'Longitude.2', 'Age', 'Latitude.3', 'Longitude.3',
-    'Spec Shannon mean all', 'Spec Shannon month all', 'Spec Shannon mean grp',
-    'Spec Shannon month grp', 'Spec Shannon phy month',
-    'Spec Shannon phy mean', 'Spec miTAG chao', 'Spec miTAG ace',
-    'Spec miTAG shannon', 'Spec richness', 'Functional diversity',
-    'Functional richness', 'Functional evenness', 'Distance interval',
+    'Shannon_Darwin_mean_all', 'Shannon_Darwin_month_all',
+    'Shannon_Darwin_mean_grp', 'Shannon_Darwin_month_grp',
+    'Shannon_Physat_month', 'Shannon_Physat_mean', 'SILVA_Chao', 'SILVA_ace',
+    'SILVA_Shannon', 'SILVA_species_rich', 'SILVA_func_diversity',
+    'OG_func_rich', 'OG_func_even', 'Distance interval',
     'Duration (ISO)', 'No of observations', 'Phosphate min', 'Phosphate lower',
     'Phosphate median', 'Phosphate upper', 'Phosphate max'
 ]

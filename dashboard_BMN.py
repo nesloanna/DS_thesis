@@ -3,11 +3,10 @@ from dash_bootstrap_templates import load_figure_template
 import pandas as pd
 import os
 import plotly.express as px
-import plotly.graph_objects as go  # or plotly.express as px
+import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output, dash_table
 import dash
 import dash_bootstrap_components as dbc
-import json
 
 
 os.chdir("/Users/annaolsen/Desktop/Speciale/DS_thesis/data")
@@ -42,10 +41,10 @@ year_marks = {year: str(year)
               for year in all_years}  # Create marks for each year
 
 # ---- Temperature ----
-df['Temperature-NaN'] = df['Sea Surface Temp'].apply(
+df['Temperature_NaN'] = df['Sea Surface Temp'].apply(
     lambda x: 'NaN' if pd.isna(x) else 'Value')
 
-temperature_values = df['Temperature-NaN'].unique()
+temperature_values = df['Temperature_NaN'].unique()
 
 df['Sea Surface Temp'].fillna('NaN', inplace=True)  # NaN -> 'NaN'
 
@@ -60,22 +59,53 @@ df['MP biome'].fillna('NaN', inplace=True)  # NaN -> 'NaN'
 marine_biomes = df['MP biome'].unique()
 
 # ---- Depth ----
-df['Depth-NaN'] = df['Depth top'].apply(
+df['Depth_NaN'] = df['Depth top'].apply(
     lambda x: 'NaN' if pd.isna(x) else 'Value')
 
-depth_values = df['Depth-NaN'].unique()
+depth_values = df['Depth_NaN'].unique()
 
 df['Depth top'].fillna('NaN', inplace=True)  # NaN -> 'Unknown'
 df['Depth nominal'].fillna('NaN', inplace=True)
 
 
 # ---- Phosphate ----
-df['Phosphate-NaN'] = df['Phosphate median'].apply(
+df['Phosphate_NaN'] = df['Phosphate median'].apply(
     lambda x: 'NaN' if pd.isna(x) else 'Value')
 
-phosphate_values = df['Phosphate-NaN'].unique()
+phosphate_values = df['Phosphate_NaN'].unique()
 
 df['Phosphate median'].fillna('NaN', inplace=True)  # NaN -> 'Unknown'
+
+
+# ---- Biodiversity ----
+df['Shannon_mean_all_NaN'] = df['Shannon_Darwin_mean_all'].apply(
+    lambda x: 'NaN' if pd.isna(x) else 'Value')
+
+shannon_values = df['Shannon_mean_all_NaN'].unique()
+
+df['Shannon_Darwin_mean_all'].fillna('NaN', inplace=True)  # NaN -> 'Unknown'
+
+df['SILVA_Chao_NaN'] = df['SILVA_Chao'].apply(
+    lambda x: 'NaN' if pd.isna(x) else 'Value')
+
+silva_chao_values = df['SILVA_Chao_NaN'].unique()
+
+df['SILVA_ace_NaN'] = df['SILVA_ace'].apply(
+    lambda x: 'NaN' if pd.isna(x) else 'Value')
+
+silva_ace_values = df['SILVA_ace_NaN'].unique()
+
+
+df['SILVA_species_NaN'] = df['SILVA_species_rich'].apply(
+    lambda x: 'NaN' if pd.isna(x) else 'Value')
+
+silva_species_values = df['SILVA_species_NaN'].unique()
+
+
+df['SILVA_func_div_NaN'] = df['SILVA_func_diversity'].apply(
+    lambda x: 'NaN' if pd.isna(x) else 'Value')
+
+silva_func_div_values = df['SILVA_func_div_NaN'].unique()
 
 
 # ---- Env feature (depth layer zone) ----
@@ -95,9 +125,10 @@ cols_x = ['Sea Surface Temp', 'Depth top',
 scatter_options_x = [{'label': col, 'value': col} for col in cols_x]
 
 
-cols_y = ['Spec Shannon mean all', 'Spec miTAG chao', 'Spec miTAG ace',
-          'Spec richness', 'Functional richness', 'Sea Surface Temp',
+cols_y = ['Shannon_Darwin_mean_all', 'SILVA_Chao', 'SILVA_ace',
+          'SILVA_species_rich', 'SILVA_func_diversity', 'Sea Surface Temp',
           'Depth top', 'Depth nominal', 'Nitrate', 'Chlorophyll a']
+
 
 # Options for dropdown menu (y-axis)
 scatter_options_y = [{'label': col, 'value': col} for col in cols_y]
@@ -154,6 +185,23 @@ sidebar = html.Div([
         value=phosphate_values,
         inline=True,
     ),
+    html.H6('Shannon (mean all)', style=h6_style),
+    dbc.Checklist(
+        id='shannon_mean',
+        options=shannon_values,
+        value=shannon_values,
+        inline=True,
+    ),
+    html.H6('SILVA ace', style=h6_style),
+    dbc.Checklist(
+        id='silva_ace',
+        options=silva_ace_values,
+        value=silva_ace_values,
+        inline=True,
+    ),
+    # shannon_values silva_chao_values
+    # silva_species_values silva_func_div_values
+
     html.Div([
         html.P("Filtered data:",
                style={'marginBottom': 0, 'marginLeft': 0,
@@ -297,7 +345,7 @@ app.layout = html.Div([
                                  options=scatter_options_y,
                                  multi=False,
                                  clearable=False,
-                                 value='Spec richness',
+                                 value='SILVA_species_rich',
                                  style={'marginTop': 0}),
                     html.P('Color by attribute:',
                            style={'fontWeight': "bold",
@@ -452,13 +500,17 @@ legend_labels = {
     [Input('year_range_slider', 'value'),
      Input('phosphates', 'value'),
      Input('temperatures', 'value'),
+     Input('shannon_mean', 'value'),
+     Input('silva_ace', 'value'),
      Input('map-color-input', 'value')])
-def plot_samples_map(year_range, phosphate, temperature, color_by):
+def plot_samples_map(year_range, phosphate, temperature, shannon_mean, silva_ace, color_by):
 
     dff = df[df['Year'].between(year_range[0], year_range[1])]
 
-    dff = dff[dff['Phosphate-NaN'].isin(phosphate)]
-    dff = dff[dff['Temperature-NaN'].isin(temperature)]
+    dff = dff[dff['Phosphate_NaN'].isin(phosphate)]
+    dff = dff[dff['Temperature_NaN'].isin(temperature)]
+    dff = dff[dff['Shannon_mean_all_NaN'].isin(shannon_mean)]
+    dff = dff[dff['SILVA_ace_NaN'].isin(silva_ace)]
 
     fig = px.scatter_mapbox(dff,
                             lat=dff['Latitude'],
@@ -660,7 +712,7 @@ def update_scatter_plot(year_range, attribute_x, attribute_y, color_by):
     dff = df[df['Year'].between(year_range[0], year_range[1])]
 
     plot_columns_x = ['Sea Surface Temp']
-    plot_columns_y = ['Spec richness']
+    plot_columns_y = ['SILVA_species_rich']
 
     # Add selected attributes to the plot columns if they exist
     if attribute_x:
