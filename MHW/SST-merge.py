@@ -1,96 +1,257 @@
+import json
+import time
 import pandas as pd
 import os
 import xarray as xr
 import numpy as np
-
-
 import pprint
+from tqdm import tqdm
 pp = pprint.PrettyPrinter(indent=4)
 
 
-data_dir = "/Users/annaolsen/Desktop/Speciale/DS_thesis/data/SST/Daily"
+# data_dir = "/Users/annaolsen/Desktop/Speciale/DS_thesis/data/SST/Daily"
+sst_data_dir = "/Volumes/PortableSSD/Speciale/SST/SST_daily"
 
-os.chdir(data_dir)
+os.chdir(sst_data_dir)
 print(os.getcwd())
 
 
-def merge_subset_sst_data(file_paths, lon_min, lon_max, lat_min, lat_max):
+def get_nc_files(folder_path):
+    nc_files = []
+    for file in os.listdir(folder_path):
+        if file.endswith(".nc") and file.startswith("sst"):
+            nc_files.append(file)
+
+    return sorted(nc_files)
+
+
+nc_files_list = get_nc_files(sst_data_dir)
+print(nc_files_list)
+
+
+# sst_data = xr.open_dataset("sst.day.mean.1984.nc")
+
+
+# # Convert longitude values from 0 to 360 to -180 to 180
+# sst_data['lon'] = xr.where(sst_data['lon'] > 180,
+#                            sst_data['lon'] - 360, sst_data['lon'])
+
+
+# # Sort longitude values
+# sst_data = sst_data.sortby('lon')
+
+# # Load datasets
+# df = pd.read_csv(
+#     "/Users/annaolsen/Desktop/Speciale/DS_thesis/data/Tara_BMN_Cleaned.csv")
+
+# df = df[["Sample ID", "Latitude", "Longitude", "Sea Surface Temp",
+#          "Date", "OS region"]]
+
+# df = df.dropna(subset=['Longitude', 'Latitude'])
+
+
+# Create a function to find the closest match for a given latitude, and longitude
+# def find_closest_location(lat, lon, sst_data):
+
+#     # Find the nearest latitude and longitude
+#     nearest_lat = sst_data['lat'].sel(lat=lat, method='nearest').values
+#     nearest_lon = sst_data['lon'].sel(lon=lon, method='nearest').values
+
+#     return nearest_lat, nearest_lon
+
+
+# # Apply the function to each row in 'df'
+# df[['lat', 'lon']] = \
+#     df.apply(lambda row: pd.Series(find_closest_location(
+#         row['Latitude'], row['Longitude'], sst_data)), axis=1)
+
+# Display the DataFrame with closest matches
+# print(df)
+
+
+# df.to_csv("Tara_SST_locations.csv", index=False)
+
+
+# # Convert 'lat' and 'lon' columns to tuples
+# df['location'] = list(zip(df['lat'], df['lon']))
+
+# # Extract unique combinations of latitudes and longitudes
+# df_unique_locations = df[['location']].drop_duplicates()
+
+# # Convert the 'location' column back to separate 'lat' and 'lon' columns
+# df_unique_locations[['lat', 'lon']] = pd.DataFrame(
+#     df_unique_locations['location'].tolist(), index=df_unique_locations.index)
+
+# Drop the 'location' column
+# df_unique_locations.drop(columns=['location'], inplace=True)
+
+# Reset the index after dropping rows
+# df_unique_locations.reset_index(drop=True, inplace=True)
+
+# # Display the result
+# print(df_unique_locations)
+
+
+# df_unique_locations.to_csv("Tara_SST_unique_locations.csv", index=False)
+df_unique_locations = pd.read_csv("Tara_SST_unique_locations.csv")
+
+
+def merge_subset_sst_data(file_paths, locations_df):
     """
-    Merge and subset SST data from multiple files based on the given bounding box coordinates and time range.
+    Merge and subset SST data from multiple files based on the given locations DataFrame.
 
     Parameters:
         file_paths (list): List of file paths containing SST data.
-        lon_min (float): Minimum longitude of the bounding box.
-        lon_max (float): Maximum longitude of the bounding box.
-        lat_min (float): Minimum latitude of the bounding box.
-        lat_max (float): Maximum latitude of the bounding box.
-        time_range (tuple, optional): Tuple specifying the start and end dates for the time range (in the format 'YYYY-MM-DD'). Defaults to None.
+        locations_df (DataFrame): DataFrame containing 'lat' and 'lon' columns.
 
     Returns:
         merged_data (xarray.Dataset): Merged and subsetted SST data.
-
     """
-    # Initialize an empty list to store individual subsets
-    subset_data_list = []
+    # Extract latitude and longitude values
+    lats = locations_df['lat'].values
+    lons = locations_df['lon'].values
 
     # Loop through each file path
-    for file_path in file_paths:
+    for file_path in tqdm(file_paths[:3]):
         # Load external SST data
         dataset = xr.open_dataset(file_path)
+        dataset.load()
+        year = file_path.split('.')[-2]
 
-        # Subset the data for the specified bounding box
-        subset_data = dataset.sel(lon=slice(lon_min, lon_max),
-                                  lat=slice(lat_min, lat_max))
+        json_path = f"temp/{year}.json"
+        if os.path.exists(json_path):
+            continue
 
-        # Subset only the 'sst' variable
-        sst_data = subset_data['sst']
+        temp_dict = {}
+        start_time = time.time()
 
-        # Append the subsetted 'sst' data to the list
-        subset_data_list.append(sst_data)
+        # print(f"subset start: {time.time() - start_time}")
+        # subset_data = dataset.sel(lon=lons, lat=lats, method='nearest')
+        # print(subset_data['sst'].to_numpy())
+        # print(f"subset stop: {time.time() - start_time}")
 
-        # # Subset the data for the specified time range (if provided)
-        # if time_range is not None:
-        # data = data.sel(time=slice(*time_range))
+        for lon, lat in zip(lons, lats):
+            start_time = time.time()
+            # Subset the data for the specified locations
+            subset_data = dataset.sel(lon=lon, lat=lat, method='nearest')
+            # print(time.time() - start_time)
+            # print(f"subset_data: {time.time() - start_time}")
+            # Subset only the 'sst' variable
+            sst_data = subset_data['sst']
+            # print(f"sst_data: {time.time() - start_time}")
 
-        # Append the subsetted 'sst' data to the list
-        subset_data_list.append(sst_data)
+            row_count = 0
+            for row in sst_data:
+                row_count += 1
+                # print(f"row: {time.time() - start_time}")
+
+                date = row['time'].values
+                temp = row.values
+                key = f"{lon}, {lat}"
+                if key not in temp_dict:
+                    temp_dict[key] = []
+
+                temp_dict[key].append(
+                    [str(date).split('T')[0], round(float(temp), 2)])
+
+            # if 5 <= lon_lat_no:
+            #     break
+            # lon_lat_no += 1
+
+        with open(json_path, "w") as json_file:
+            json_file.write(json.dumps(temp_dict))
 
         # Close the file
         dataset.close()
 
-    # Merge all the subsetted datasets into a single dataset
-    merged_data = xr.concat(subset_data_list, dim='time')
-
-    # # Save the merged data to a file if save_path is provided
-    # if save_path:
-    #     merged_data.to_netcdf(save_path)
-
-    return merged_data
+    return None
 
 
-# Example usage
-file_paths = [
-    'sst.day.mean.2005.nc',
-    'sst.day.mean.2006.nc',
-    # 'sst.day.mean.2007.nc',
-    # 'sst.day.mean.2008.nc',
-    # 'sst.day.mean.2009.nc',
-    # 'sst.day.mean.2010.nc',
-    # 'sst.day.mean.2011.nc',
-    # 'sst.day.mean.2012.nc',
-    # 'sst.day.mean.2013.nc',
-]
-
-lon_min, lon_max = 169, 216
-lat_min, lat_max = 29.5, 45.5
-# time_range = ('1982-01-01', '2014-01-01')
-save_path = "merged_sst_2005_06.nc"
-
-merged_data = merge_subset_sst_data(
-    file_paths, lon_min, lon_max, lat_min, lat_max)
+merged_data = merge_subset_sst_data(nc_files_list, df_unique_locations)
 
 
-merged_data.to_netcdf(save_path)
+# merged_data.to_netcdf("merged_sst_1981_2013.nc")
+
+
+# def merge_subset_sst_data(file_paths, lon_min, lon_max, lat_min, lat_max):
+#     """
+#     Merge and subset SST data from multiple files based on the given bounding box coordinates and time range.
+
+#     Parameters:
+#         file_paths (list): List of file paths containing SST data.
+#         lon_min (float): Minimum longitude of the bounding box.
+#         lon_max (float): Maximum longitude of the bounding box.
+#         lat_min (float): Minimum latitude of the bounding box.
+#         lat_max (float): Maximum latitude of the bounding box.
+#         time_range (tuple, optional): Tuple specifying the start and end dates for the time range (in the format 'YYYY-MM-DD'). Defaults to None.
+
+#     Returns:
+#         merged_data (xarray.Dataset): Merged and subsetted SST data.
+
+#     """
+#     # Initialize an empty list to store individual subsets
+#     subset_data_list = []
+
+#     # Loop through each file path
+#     for file_path in file_paths:
+#         # Load external SST data
+#         dataset = xr.open_dataset(file_path)
+
+#         # Subset the data for the specified bounding box
+#         subset_data = dataset.sel(lon=slice(lon_min, lon_max),
+#                                   lat=slice(lat_min, lat_max))
+
+#         # Subset only the 'sst' variable
+#         sst_data = subset_data['sst']
+
+#         # Append the subsetted 'sst' data to the list
+#         subset_data_list.append(sst_data)
+
+#         # # Subset the data for the specified time range (if provided)
+#         # if time_range is not None:
+#         # data = data.sel(time=slice(*time_range))
+
+#         # Append the subsetted 'sst' data to the list
+#         subset_data_list.append(sst_data)
+
+#         # Close the file
+#         dataset.close()
+
+#     # Merge all the subsetted datasets into a single dataset
+#     merged_data = xr.concat(subset_data_list, dim='time')
+
+#     # # Save the merged data to a file if save_path is provided
+#     # if save_path:
+#     #     merged_data.to_netcdf(save_path)
+
+#     return merged_data
+
+
+# # Example usage
+# file_paths = [
+#     'sst.day.mean.2005.nc',
+#     'sst.day.mean.2006.nc',
+#     # 'sst.day.mean.2007.nc',
+#     # 'sst.day.mean.2008.nc',
+#     # 'sst.day.mean.2009.nc',
+#     # 'sst.day.mean.2010.nc',
+#     # 'sst.day.mean.2011.nc',
+#     # 'sst.day.mean.2012.nc',
+#     # 'sst.day.mean.2013.nc',
+# ]
+
+# lon_min, lon_max = 169, 216
+# lat_min, lat_max = 29.5, 45.5
+# # time_range = ('1982-01-01', '2014-01-01')
+# save_path = "merged_sst_2005_06.nc"
+
+
+# merged_data = merge_subset_sst_data(
+#     file_paths, lon_min, lon_max, lat_min, lat_max)
+
+
+# merged_data.to_netcdf(save_path)
+
 
 # merged_data.to_netcdf(save_path)
 
