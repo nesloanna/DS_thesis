@@ -105,72 +105,69 @@ def merge_subset_sst_data(file_paths, locations_df):
         locations_df (DataFrame): DataFrame containing 'lat' and 'lon' columns.
 
     Returns:
-        merged_data (xarray.Dataset): Merged and subsetted SST data.
+        merged_data (DataFrame): Merged and subsetted SST data in DataFrame format.
     """
+
+    # Create an empty list to store the DataFrames
+    dfs = []
+
     # Extract latitude and longitude values
     lats = locations_df['lat'].values
     lons = locations_df['lon'].values
 
     # Loop through each file path
-    for file_path in tqdm(file_paths[:3]):
+    for file_path in tqdm(file_paths[30:35]):
+
         # Load external SST data
         dataset = xr.open_dataset(file_path)
         dataset.load()
-        year = file_path.split('.')[-2]
 
-        json_path = f"temp/{year}.json"
-        if os.path.exists(json_path):
-            continue
-
-        temp_dict = {}
-        start_time = time.time()
-
-        # print(f"subset start: {time.time() - start_time}")
-        # subset_data = dataset.sel(lon=lons, lat=lats, method='nearest')
-        # print(subset_data['sst'].to_numpy())
-        # print(f"subset stop: {time.time() - start_time}")
+        rows = []
 
         for lon, lat in zip(lons, lats):
-            start_time = time.time()
+
             # Subset the data for the specified locations
             subset_data = dataset.sel(lon=lon, lat=lat, method='nearest')
-            # print(time.time() - start_time)
-            # print(f"subset_data: {time.time() - start_time}")
+
             # Subset only the 'sst' variable
             sst_data = subset_data['sst']
-            # print(f"sst_data: {time.time() - start_time}")
 
-            row_count = 0
             for row in sst_data:
-                row_count += 1
-                # print(f"row: {time.time() - start_time}")
 
                 date = row['time'].values
                 temp = row.values
-                key = f"{lon}, {lat}"
-                if key not in temp_dict:
-                    temp_dict[key] = []
 
-                temp_dict[key].append(
-                    [str(date).split('T')[0], round(float(temp), 2)])
+                rows.append({'lon': lon, 'lat': lat,
+                            'date': date, 'temp': temp})
 
-            # if 5 <= lon_lat_no:
-            #     break
-            # lon_lat_no += 1
-
-        with open(json_path, "w") as json_file:
-            json_file.write(json.dumps(temp_dict))
+        # Create DataFrame for the current file
+        df = pd.DataFrame(rows)
+        dfs.append(df)
 
         # Close the file
         dataset.close()
 
-    return None
+    # Concatenate all DataFrames into a single DataFrame
+    merged_data = pd.concat(dfs, ignore_index=True)
+
+    merged_data.to_csv("SST_2011_2013.csv", index=False)
+
+    return merged_data
 
 
 merged_data = merge_subset_sst_data(nc_files_list, df_unique_locations)
 
 
-# merged_data.to_netcdf("merged_sst_1981_2013.nc")
+# nc_files_list[0:5]   -> 1981-1985
+# nc_files_list[5:10]  -> 1986-1990
+# nc_files_list[10:15] -> 1991-1995
+# nc_files_list[15:20] -> 1996-2000
+# nc_files_list[20:25] -> 2001-2005
+# nc_files_list[25:30] -> 2006-2010
+# nc_files_list[30:35] -> 2011-2015 (2011-2013)
+
+
+# merged_data.to_csv("SST_1981_2013.csv", index=False)
 
 
 # def merge_subset_sst_data(file_paths, lon_min, lon_max, lat_min, lat_max):
