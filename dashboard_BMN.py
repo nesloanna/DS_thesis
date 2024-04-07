@@ -12,7 +12,7 @@ import dash_bootstrap_components as dbc
 os.chdir("/Users/annaolsen/Desktop/Speciale/DS_thesis/data")
 print(os.getcwd())
 
-# Load datasets
+# ------- Load and prepare datasets -------
 df = pd.read_csv("Tara_BMN_Cleaned.csv")
 
 # Removing rows with empty longitude or latitude
@@ -21,18 +21,18 @@ df = df.dropna(subset=['Latitude', 'Longitude'])
 # Reset the index after dropping rows
 df.reset_index(drop=True, inplace=True)
 
-
-df_sst = pd.read_csv("Tara_SST_Plot.csv")
-
+# df_sst = pd.read_csv("Tara_SST_Plot.csv")
 # df = df[:1000]
 
 all_data_points = len(df)
 
-
 h6_style = {'fontWeight': "bold", 'marginTop': 20, 'marginBottom': 10}
 
+# Fill missing values in the entire DataFrame
+df.fillna('NaN', inplace=True)
 
-# ---- Year slider ----
+
+# ------- Year slider -------
 year_min, year_max = df['Year'].min(), df['Year'].max()
 
 all_years = list(range(year_min, year_max + 1))  # Find all years within range
@@ -40,79 +40,10 @@ all_years = list(range(year_min, year_max + 1))  # Find all years within range
 year_marks = {year: str(year)
               for year in all_years}  # Create marks for each year
 
-# ---- Temperature ----
-df['Temperature_NaN'] = df['Sea Surface Temp'].apply(
-    lambda x: 'NaN' if pd.isna(x) else 'Value')
 
-temperature_values = df['Temperature_NaN'].unique()
+# ------- Dropdown - Explore missing values -------
 
-df['Sea Surface Temp'].fillna('NaN', inplace=True)  # NaN -> 'NaN'
-
-df['Nitrate'].fillna('NaN', inplace=True)  # NaN -> 'NaN'
-df['Chlorophyll a'].fillna('NaN', inplace=True)  # NaN -> 'NaN'
-df['Net PP carbon'].fillna('NaN', inplace=True)
-df['Net PP carbon 30'].fillna('NaN', inplace=True)
-
-# ---- Marine biome (depth) ----
-df['MP biome'].fillna('NaN', inplace=True)  # NaN -> 'NaN'
-
-marine_biomes = df['MP biome'].unique()
-
-# ---- Depth ----
-df['Depth_NaN'] = df['Depth top'].apply(
-    lambda x: 'NaN' if pd.isna(x) else 'Value')
-
-depth_values = df['Depth_NaN'].unique()
-
-df['Depth top'].fillna('NaN', inplace=True)  # NaN -> 'Unknown'
-df['Depth nominal'].fillna('NaN', inplace=True)
-
-
-# ---- Phosphate ----
-df['Phosphate_NaN'] = df['Phosphate median'].apply(
-    lambda x: 'NaN' if pd.isna(x) else 'Value')
-
-phosphate_values = df['Phosphate_NaN'].unique()
-
-df['Phosphate median'].fillna('NaN', inplace=True)  # NaN -> 'Unknown'
-
-
-# ---- Biodiversity ----
-df['Shannon_mean_all_NaN'] = df['Shannon_Darwin_mean_all'].apply(
-    lambda x: 'NaN' if pd.isna(x) else 'Value')
-
-shannon_values = df['Shannon_mean_all_NaN'].unique()
-
-df['Shannon_Darwin_mean_all'].fillna('NaN', inplace=True)  # NaN -> 'Unknown'
-
-df['SILVA_Chao_NaN'] = df['SILVA_Chao'].apply(
-    lambda x: 'NaN' if pd.isna(x) else 'Value')
-
-silva_chao_values = df['SILVA_Chao_NaN'].unique()
-
-df['SILVA_ace_NaN'] = df['SILVA_ace'].apply(
-    lambda x: 'NaN' if pd.isna(x) else 'Value')
-
-silva_ace_values = df['SILVA_ace_NaN'].unique()
-
-
-df['SILVA_species_NaN'] = df['SILVA_species_rich'].apply(
-    lambda x: 'NaN' if pd.isna(x) else 'Value')
-
-silva_species_values = df['SILVA_species_NaN'].unique()
-
-
-df['SILVA_func_div_NaN'] = df['SILVA_func_diversity'].apply(
-    lambda x: 'NaN' if pd.isna(x) else 'Value')
-
-silva_func_div_values = df['SILVA_func_div_NaN'].unique()
-
-
-# ---- Env feature (depth layer zone) ----
-df['Depth layer zone'].fillna(
-    'Unknown', inplace=True)  # NaN -> 'Unknown'
-
-env_features = df['Depth layer zone'].unique()
+dropdown_options = [{'label': col, 'value': col} for col in df.columns[1:]]
 
 
 # ---------- Data for scatter plot and dropdown menus ----------
@@ -124,17 +55,15 @@ cols_x = ['Sea Surface Temp', 'Depth top',
 # Options for dropdown menu (x-axis)
 scatter_options_x = [{'label': col, 'value': col} for col in cols_x]
 
-
 cols_y = ['Shannon_Darwin_mean_all', 'SILVA_Chao', 'SILVA_ace',
           'SILVA_species_rich', 'SILVA_func_diversity', 'Sea Surface Temp',
           'Depth top', 'Depth nominal', 'Nitrate', 'Chlorophyll a']
-
 
 # Options for dropdown menu (y-axis)
 scatter_options_y = [{'label': col, 'value': col} for col in cols_y]
 
 
-# ---- Left side bar ----
+# ------- Left sidebar for filtering -------
 SIDEBAR_STYLE = {
     "top": 0,
     "left": 0,
@@ -156,6 +85,7 @@ sidebar = html.Div([
             {"label": 'Ocean and sea region', "value": 'OS region'},
             {"label": 'Depth layer zone', "value": 'Depth layer zone'},
             {"label": 'Biogeographical province', "value": 'BG province'},
+            {"label": 'Campaign', "value": 'Campaign'},
         ],
         value="OS region",
         id="map-color-input",
@@ -171,37 +101,24 @@ sidebar = html.Div([
         marks=year_marks,
         value=[year_min, year_max],
     ),
-    html.H6('Temperature', style=h6_style),
-    dbc.Checklist(
-        id='temperatures',
-        options=temperature_values,
-        value=temperature_values,
-        inline=True,
+    html.H6("Explore missing values",
+            style={'fontWeight': "bold", 'marginTop': 25, 'marginBottom': 12}),
+    dcc.Dropdown(
+        id='value_dropdown',
+        options=dropdown_options,
+        value=df.columns[1],  # Default value
+        clearable=False
     ),
-    html.H6('Phosphate', style=h6_style),
-    dbc.Checklist(
-        id='phosphates',
-        options=phosphate_values,
-        value=phosphate_values,
+    dbc.RadioItems(
+        id='checklist',
+        options=[
+            {'label': 'All', 'value': 'all'},
+            {'label': 'Values present', 'value': 'values'}
+        ],
+        value='all',
         inline=True,
+        style={'marginTop': 10, 'marginBottom': 10},
     ),
-    html.H6('Shannon (mean all)', style=h6_style),
-    dbc.Checklist(
-        id='shannon_mean',
-        options=shannon_values,
-        value=shannon_values,
-        inline=True,
-    ),
-    html.H6('SILVA ace', style=h6_style),
-    dbc.Checklist(
-        id='silva_ace',
-        options=silva_ace_values,
-        value=silva_ace_values,
-        inline=True,
-    ),
-    # shannon_values silva_chao_values
-    # silva_species_values silva_func_div_values
-
     html.Div([
         html.P("Filtered data:",
                style={'marginBottom': 0, 'marginLeft': 0,
@@ -227,7 +144,7 @@ sidebar = html.Div([
     style=SIDEBAR_STYLE)
 
 
-# ---- Info box ----
+# ------- Info box -------
 
 # Define the style for the card containing the info
 info_box_style = {'margin-top': '0px', 'marginBottom': '20px',
@@ -261,7 +178,7 @@ box_options = [
 ]
 
 
-# ---------- Plotly, dash and mapbox ----------
+# ------- Plotly, dash and mapbox -------
 px.set_mapbox_access_token(
     'pk.eyJ1Ijoia29ydHBsb3RseSIsImEiOiJjbHBoNDZmZm0wMHUyMnJwNm5yM3RtcjY1In0.qxuHfESjhBp1wqT9ByZc0g')
 
@@ -274,7 +191,7 @@ app = dash.Dash(external_stylesheets=[dbc.themes.FLATLY])
 load_figure_template("cerulean")
 
 
-# ---------- Dashboard layout ----------
+# -------------------- Dashboard layout --------------------
 app.layout = html.Div([
     dbc.Container([
         dbc.Row(  # Row with title of dashboard
@@ -379,7 +296,7 @@ app.layout = html.Div([
 ])
 
 
-# ---------- Box plot ----------
+# ------- Box plot (selected point) -------
 
 @app.callback(
     Output('box_plot', 'figure'),
@@ -479,7 +396,7 @@ def store_selected_point_info(clickData):
         return None
 
 
-# ---------- Ocean map - Plot sample locations ----------
+# ------- Ocean map - Plot sample locations -------
 
 # Define your list of colors
 custom_colors = ['#ff7f0e', '#1f77b4', '#2ca02c', '#d62728', '#9467bd',
@@ -490,7 +407,8 @@ legend_labels = {
     "MP biome": "Marine biome",
     "OS region": "Ocean and sea region",
     "Depth layer zone": "Depth layer zone",
-    "BG province": "Biogeographical province"
+    "BG province": "Biogeographical province",
+    "Campaign": "Campaign",
 }
 
 
@@ -498,19 +416,16 @@ legend_labels = {
     [Output('ocean_map', 'figure'),
      Output('filtered-count', 'children')],
     [Input('year_range_slider', 'value'),
-     Input('phosphates', 'value'),
-     Input('temperatures', 'value'),
-     Input('shannon_mean', 'value'),
-     Input('silva_ace', 'value'),
+     Input('value_dropdown', 'value'),
+     Input('checklist', 'value'),
      Input('map-color-input', 'value')])
-def plot_samples_map(year_range, phosphate, temperature, shannon_mean, silva_ace, color_by):
+def plot_samples_map(year_range, selected_column, checklist, color_by):
 
     dff = df[df['Year'].between(year_range[0], year_range[1])]
 
-    dff = dff[dff['Phosphate_NaN'].isin(phosphate)]
-    dff = dff[dff['Temperature_NaN'].isin(temperature)]
-    dff = dff[dff['Shannon_mean_all_NaN'].isin(shannon_mean)]
-    dff = dff[dff['SILVA_ace_NaN'].isin(silva_ace)]
+    # Filter DataFrame based on selected column and checklist options
+    if 'values' in checklist:
+        dff = dff[dff[selected_column] != 'NaN']  # Filter out rows with 'NaN'
 
     fig = px.scatter_mapbox(dff,
                             lat=dff['Latitude'],
@@ -547,27 +462,27 @@ def plot_samples_map(year_range, phosphate, temperature, shannon_mean, silva_ace
     # Update the hover template
     fig.update_traces(hovertemplate=hover_template)
 
-    # Add points from df2 as a separate scatter plot
-    fig.add_scattermapbox(
-        lat=df_sst['sst_lat'],
-        lon=df_sst['sst_lon'],
-        mode='markers',
-        # marker=dict(color=df_sst['OS region'],
-        #             colorscale='Viridis',  # Use the same color scale as the main plot
-        #             # Add colorbar for temperature
-        #             colorbar=dict(title='OS region')),
-        text=df_sst['Sample ID'],  # Display Sample ID as hover text
-        name='Additional Points',  # Name for the legend
-        # Custom data for hover
-        customdata=df_sst[['Sample ID', 'sst_daily', 'Sea Surface Temp',
-                           'sst_lat', 'sst_lon', 'Latitude', 'Longitude']],
-        hovertemplate="<b>%{customdata[0]}</b><br>" +
-        "Temperature (SST): %{customdata[1]:.2f}<br>" +
-        "Tara SST: %{customdata[2]:.2f}<br>" +
-        "Lat: %{customdata[3]}, Lon: %{customdata[4]}<br>" +
-        "(Tara Lat: %{customdata[5]:.3f}, Lon: %{customdata[6]:.3f}<extra></extra>"
+    # # Add points from df2 as a separate scatter plot
+    # fig.add_scattermapbox(
+    #     lat=df_sst['sst_lat'],
+    #     lon=df_sst['sst_lon'],
+    #     mode='markers',
+    #     # marker=dict(color=df_sst['OS region'],
+    #     #             colorscale='Viridis',  # Use the same color scale as the main plot
+    #     #             # Add colorbar for temperature
+    #     #             colorbar=dict(title='OS region')),
+    #     text=df_sst['Sample ID'],  # Display Sample ID as hover text
+    #     name='Additional Points',  # Name for the legend
+    #     # Custom data for hover
+    #     customdata=df_sst[['Sample ID', 'sst_daily', 'Sea Surface Temp',
+    #                        'sst_lat', 'sst_lon', 'Latitude', 'Longitude']],
+    #     hovertemplate="<b>%{customdata[0]}</b><br>" +
+    #     "Temperature (SST): %{customdata[1]:.2f}<br>" +
+    #     "Tara SST: %{customdata[2]:.2f}<br>" +
+    #     "Lat: %{customdata[3]}, Lon: %{customdata[4]}<br>" +
+    #     "(Tara Lat: %{customdata[5]:.3f}, Lon: %{customdata[6]:.3f}<extra></extra>"
 
-    )
+    # )
 
     # Update the legend title dynamically based on the selected option
     # Default to "Legend" if color_by not found
@@ -595,7 +510,7 @@ def plot_samples_map(year_range, phosphate, temperature, shannon_mean, silva_ace
     return [fig, f"{count}"]
 
 
-# ---------- Clicks on map ----------
+# ------- Clicks on map -------
 
 # Define the style for the table
 table_style = {
@@ -699,7 +614,7 @@ def display_selected_point_info(clickData):
     return info_box
 
 
-# ---------- Scatter plot (updates based on selected attributes) ----------
+# ------- Scatter plot (updates based on selected attributes) -------
 @app.callback(
     Output('scatter_plot', 'figure'),
     [Input('year_range_slider', 'value'),
@@ -735,7 +650,7 @@ def update_scatter_plot(year_range, attribute_x, attribute_y, color_by):
     return fig
 
 
-# ---------- Bar chart (sample counts) ----------
+# ------- Bar chart (sample counts) -------
 @app.callback(
     Output('sample_count_bar', 'figure'),
     [Input('year_range_slider', 'value')]
@@ -755,4 +670,4 @@ def plot_sample_count(year_range):
 
 # start the web application
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8056)
+    app.run_server(debug=True, port=8058)

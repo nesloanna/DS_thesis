@@ -84,6 +84,18 @@ df['Date'] = df['Date/Time'].dt.date
 df['Year'] = df['Date/Time'].dt.year
 
 
+# Columns to apply the operation to
+columns_to_process = ['Depth layer zone', 'BG province', 'OS region']
+
+# Loop over the specified columns
+for col in columns_to_process:
+    # Split the strings and select the second part
+    df[col] = df[col].str.split("] ", expand=True)[1]
+
+# Display the DataFrame
+print(df)
+
+
 # # Sort all columns (but Sample ID) alphabetically
 # columns_to_sort = sorted(
 #     [col for col in df.columns if col not in ['Sample ID']])
