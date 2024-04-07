@@ -132,7 +132,7 @@ df_merged = pd.merge(df_merged, df_nutri, on='Sample ID', how="inner")
 print("Shape after merging bio/meso with nutri:", df_merged.shape)
 
 
-df_merged.to_csv("Tara_merged_BMN.csv", index=False)
+# df_merged.to_csv("Tara_merged_BMN.csv", index=False)
 
 # df_merged = df_merged.sort_values(by='Sample ID (TARA_barcode#)')
 

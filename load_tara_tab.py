@@ -69,9 +69,9 @@ def main():
     df = read_tab_file(meso_sl_file_path)
     df.to_csv("Tara_Env_Meso_SampleLocation.csv", index=False)
 
-    osd_file_path = "OSD_registies.tab"
-    df = read_tab_file(osd_file_path)
-    df.to_csv("OSD_data.csv", index=False)
+    campaign_path = "TARA_campaign_registries.tab"
+    df = read_tab_file(campaign_path)
+    df.to_csv("Tara_Campaign.csv", index=False)
 
 
 def read_tab_file(tab_file_path):
