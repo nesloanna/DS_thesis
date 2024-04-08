@@ -28,6 +28,8 @@ all_data_points = len(df)
 
 h6_style = {'fontWeight': "bold", 'marginTop': 20, 'marginBottom': 10}
 
+df_time = df.copy()
+
 # Fill missing values in the entire DataFrame
 df.fillna('NaN', inplace=True)
 
@@ -44,6 +46,10 @@ year_marks = {year: str(year)
 # ------- Dropdown - Explore missing values -------
 
 dropdown_options = [{'label': col, 'value': col} for col in df.columns[1:]]
+
+# Dropdown - time series
+dropdown_time_options = [{'label': col, 'value': col}
+                         for col in df.columns if col != 'Date']
 
 
 # ---------- Data for scatter plot and dropdown menus ----------
@@ -65,12 +71,13 @@ scatter_options_y = [{'label': col, 'value': col} for col in cols_y]
 
 # ------- Left sidebar for filtering -------
 SIDEBAR_STYLE = {
+    "marginTop": 15,
     "top": 0,
     "left": 0,
     "bottom": 0,
     "paddingLeft": '20px',
     "paddingRight": '10px',
-    "paddingTop": "32px",
+    "paddingTop": "28px",
     "paddingBottom": '10px',
     "background-color": "#f8f9fa",
 }
@@ -112,8 +119,8 @@ sidebar = html.Div([
     dbc.RadioItems(
         id='checklist',
         options=[
-            {'label': 'All', 'value': 'all'},
-            {'label': 'Values present', 'value': 'values'}
+            {'label': 'All points', 'value': 'all'},
+            {'label': 'Values', 'value': 'values'}
         ],
         value='all',
         inline=True,
@@ -147,11 +154,11 @@ sidebar = html.Div([
 # ------- Info box -------
 
 # Define the style for the card containing the info
-info_box_style = {'margin-top': '0px', 'marginBottom': '20px',
+info_box_style = {'margin-top': '15px', 'marginBottom': '15px',
                   'padding': '15px', 'background-color': '#f0f0f0',
                   'line-height': '1.1'}
 
-info_box_style_a = {'margin-top': '0px', 'marginBottom': '20px',
+info_box_style_a = {'margin-top': '15px', 'marginBottom': '15px',
                     'marginLeft': '0px',
                     'padding': '0px', 'background-color': '#f0f0f0',
                     'line-height': '1.1'}
@@ -194,25 +201,22 @@ load_figure_template("cerulean")
 # -------------------- Dashboard layout --------------------
 app.layout = html.Div([
     dbc.Container([
-        dbc.Row(  # Row with title of dashboard
+        dbc.Row([  # Row with sidebar, ocean map, info box
             dbc.Col(
-                html.Div([
-                    html.H3(children='TARA Ocean'),
-                ], style={'textAlign': 'center', 'marginTop': 20,
-                          'marginBottom': 10}))),
-
-        dbc.Row(  # Row with sidebar, ocean map, info box
-            [dbc.Col(
                 sidebar, width=2),  # Sidebar
-             dbc.Col(
+            dbc.Col([
+                html.Div([
+                    html.H3(children='TARA Oceans')],
+                    style={'textAlign': 'center', 'marginTop': 20,
+                           'marginBottom': 10}),
                 html.Div([  # Ocean map
                     dcc.Graph(id='ocean_map',
                               clickData={'points': [{'customdata': ''}]}
                               ),
                     dcc.Input(id='dummy-input', type='hidden',
                               value='trigger-callback'),
-                ]), width=7, className="scatter_map"),
-             dbc.Col(  # Info box
+                ])], width=7, className="scatter_map"),
+            dbc.Col(  # Info box
                 html.Div([
                     html.Div(id='selected_point_info_box'),
                     dbc.Card([
@@ -233,12 +237,20 @@ app.layout = html.Div([
                     ], style=info_box_style)
                 ]),
                 width=3),
-             ]),
+        ]),
         dbc.Row([
             html.Div([
                 html.P('', style={'marginBottom': 10, 'marginTop': 15})
             ])
         ]),
+        dbc.Row([dbc.Col([
+                dcc.Dropdown(
+                    id='dropdown_time',
+                    options=dropdown_time_options,
+                    value='Sea Surface Temp',  # Default value
+                    clearable=False
+                ),
+                dcc.Graph(id='timeseries')]),]),
         dbc.Row([  # Row with scatter plot and bar chart
             dbc.Col(
                 html.Div([  # Dropdown for scatter plot
@@ -549,7 +561,6 @@ def display_selected_point_info(clickData):
 
                 depth_layer = selected_row['Depth layer zone']
                 depth_top = selected_row['Depth top']
-                depth_nom = selected_row['Depth nominal']
                 sea_surface_temp = selected_row['Sea Surface Temp']
 
                 nitrate = selected_row['Nitrate']
@@ -566,7 +577,6 @@ def display_selected_point_info(clickData):
                         {"Col": "Marine biome", "Value": marine_biome},
                         {"Col": "Depth Layer Zone", "Value": depth_layer},
                         {"Col": "Depth (top)", "Value": depth_top},
-                        {"Col": "Depth (nominal)", "Value": depth_nom},
                         {"Col": "Sea Surface Temp",
                             "Value": sea_surface_temp},
 
@@ -598,7 +608,7 @@ def display_selected_point_info(clickData):
                             'color': 'black',
                             'fontWeight': 'bold'
                         },
-                        page_size=8,   # Display 8 values per page
+                        page_size=6,   # Display 8 values per page
                     )
 
                     return dbc.Card([
@@ -650,8 +660,84 @@ def update_scatter_plot(year_range, attribute_x, attribute_y, color_by):
     return fig
 
 
-# ------- Bar chart (sample counts) -------
+# print(df['OS region'].unique())
+# Create a dictionary to map each region to its corresponding color
+region_color_mapping = {
+    'Mediterranean Sea': 'rgba(255, 0, 0, 0.2)',
+    'Red Sea': 'rgba(0, 255, 0, 0.2)',
+    'Indian Ocean': 'rgba(0, 0, 255, 0.2)',
+    'South Atlantic Ocean': 'rgba(92, 192, 232, 0.2)',
+    'Southern Ocean': 'rgba(92, 232, 99, 0.2)',
+    'South Pacific Ocean': 'rgba(84, 71, 245, 0.2)',
+    'North Pacific Ocean': 'rgba(159, 174, 164, 0.2)',
+    'North Atlantic Ocean': 'rgba(245, 236, 71, 0.2)',
+    'Arctic Ocean': 'rgba(38, 165, 150, 0.2)',
+}
+
+
+# Add a new column to the DataFrame to store the color for each region
+df_time['Region Color'] = df_time['OS region'].map(region_color_mapping)
+
+# ------- Time series plot -------
+
+
 @app.callback(
+    Output('timeseries', 'figure'),
+    [Input('dropdown_time', 'value'),
+     Input('selected_point_info', 'children')]
+)
+def update_timeseries(selected_variable, selected_point_info):
+    fig = go.Figure()
+
+    # Extracting values that are not NaN
+    # valid_values = df_time[selected_variable].dropna()
+    valid_values = df[selected_variable][df[selected_variable] != "NaN"]
+
+    # Determining placeholder value based on the range of existing data
+    placeholder_value = valid_values.min() - 1 if len(valid_values) > 0 else 0
+    # placeholder_value = 0
+
+    # Plot points with value
+    if not valid_values.empty:
+        fig.add_trace(go.Scatter(x=df['Date'], y=df[selected_variable],
+                                 mode='markers', marker=dict(size=4, color='DarkSlateGray'),
+                                 name="With Value"))
+
+    # Plot points without value
+    # missing_values_mask = df[selected_variable].isnull()
+    missing_values_mask = df[selected_variable] == "NaN"
+
+    if missing_values_mask.any():
+        fig.add_trace(go.Scatter(x=df['Date'][missing_values_mask], y=[placeholder_value] * missing_values_mask.sum(),
+                                 mode='markers', marker=dict(size=4, color='lightgrey'),
+                                 name="Without Value"))
+
+    # If a point is selected, add a marker for the selected point on the box plot
+    if selected_point_info and 'lat' in selected_point_info and 'lon' in selected_point_info:
+        lat = selected_point_info['lat']
+        lon = selected_point_info['lon']
+        selected_row = df[(df['Latitude'] == lat) &
+                          (df['Longitude'] == lon)]
+
+        if not selected_row.empty:
+            selected_row = selected_row.iloc[0]
+            selected_value = selected_row[selected_variable]
+            # 'Date' is the column name for the x-axis
+            selected_date = selected_row['Date']
+
+            fig.add_trace(go.Scatter(
+                x=[selected_date], y=[selected_value], mode='markers',
+                marker=dict(color='red', size=10, opacity=0.8), name="Point",
+                showlegend=True))
+
+    fig.update_layout(title=f'Time Series of {selected_variable}',
+                      showlegend=True, legend=dict(x=0.9, y=0.98))
+
+    return fig
+
+
+# ------- Bar chart (sample counts) -------
+@ app.callback(
     Output('sample_count_bar', 'figure'),
     [Input('year_range_slider', 'value')]
 )
