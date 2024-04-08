@@ -91,6 +91,7 @@ columns_to_process = ['Depth layer zone', 'BG province', 'OS region']
 for col in columns_to_process:
     # Split the strings and select the second part
     df[col] = df[col].str.split("] ", expand=True)[1]
+    df[col] = df[col].str.strip()
 
 # Display the DataFrame
 print(df)
