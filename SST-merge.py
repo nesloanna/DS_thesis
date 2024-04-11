@@ -155,9 +155,7 @@ def merge_subset_sst_data(file_paths, locations_df):
     return merged_data
 
 
-merged_data = merge_subset_sst_data(nc_files_list, df_unique_locations)
-
-
+# merged_data = merge_subset_sst_data(nc_files_list, df_unique_locations)
 # nc_files_list[0:5]   -> 1981-1985
 # nc_files_list[5:10]  -> 1986-1990
 # nc_files_list[10:15] -> 1991-1995
@@ -165,6 +163,34 @@ merged_data = merge_subset_sst_data(nc_files_list, df_unique_locations)
 # nc_files_list[20:25] -> 2001-2005
 # nc_files_list[25:30] -> 2006-2010
 # nc_files_list[30:35] -> 2011-2015 (2011-2013)
+sst_csv_folder = "/Users/annaolsen/Desktop/Speciale/DS_thesis/data/SST/merged"
+
+os.chdir(sst_csv_folder)
+print(os.getcwd())
+
+
+def get_csv_files(folder_path):
+    csv_files = []
+    for file in os.listdir(folder_path):
+        if file.endswith(".csv") and file.startswith("SST"):
+            csv_files.append(file)
+
+    return sorted(csv_files)
+
+
+csv_files_list = get_csv_files(sst_csv_folder)
+print(csv_files_list)
+
+
+dataframes = []
+
+for file in csv_files_list:
+    dataframes.append(pd.read_csv(file))
+
+merged_df = pd.concat(dataframes, ignore_index=True)
+
+# Write the merged DataFrame to a new CSV file
+merged_df.to_csv('merged_SST.csv', index=False)
 
 
 # merged_data.to_csv("SST_1981_2013.csv", index=False)
