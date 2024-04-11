@@ -2,6 +2,7 @@ import plotly.graph_objects as go
 from dash_bootstrap_templates import load_figure_template
 import pandas as pd
 import os
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 from dash import Dash, dcc, html, Input, Output, dash_table
@@ -30,6 +31,21 @@ h6_style = {'fontWeight': "bold", 'marginTop': 20, 'marginBottom': 10}
 
 df_time = df.copy()
 
+df = df.sort_values(by=['Date'])
+
+
+# Function to find numeric columns
+def numeric_columns(df):
+    numeric_cols = []
+    for col in df.columns:
+        if pd.api.types.is_numeric_dtype(df[col]):
+            numeric_cols.append(col)
+    return numeric_cols
+
+
+numeric_cols = numeric_columns(df)
+# print(numeric_cols)
+
 # Fill missing values in the entire DataFrame
 df.fillna('NaN', inplace=True)
 
@@ -49,7 +65,7 @@ dropdown_options = [{'label': col, 'value': col} for col in df.columns[1:]]
 
 # Dropdown - time series
 dropdown_time_options = [{'label': col, 'value': col}
-                         for col in df.columns if col != 'Date']
+                         for col in numeric_cols if col != 'Date']
 
 
 # ---------- Data for scatter plot and dropdown menus ----------
@@ -252,52 +268,52 @@ app.layout = html.Div([
                 ),
                 dcc.Graph(id='timeseries')]),]),
         dbc.Row([  # Row with scatter plot and bar chart
-            dbc.Col(
-                html.Div([  # Dropdown for scatter plot
-                    html.P('Attribute for x-axis:',
-                           style={'fontWeight': "bold",
-                                  'marginTop': 30,
-                                  'marginBottom': 5,
-                                  'font-size': 16}),
-                    dcc.Dropdown(id='scatter_dropdown_x',
-                                 options=scatter_options_x,
-                                 multi=False,
-                                 clearable=False,
-                                 value='Sea Surface Temp',
-                                 style={'marginTop': 0}),
-                    html.P('Attribute for y-axis:',
-                           style={'fontWeight': "bold",
-                                  'marginTop': 30,
-                                  'marginBottom': 5,
-                                  'font-size': 16}),
-                    dcc.Dropdown(id='scatter_dropdown_y',
-                                 options=scatter_options_y,
-                                 multi=False,
-                                 clearable=False,
-                                 value='SILVA_species_rich',
-                                 style={'marginTop': 0}),
-                    html.P('Color by attribute:',
-                           style={'fontWeight': "bold",
-                                  'marginTop': 30,
-                                  'marginBottom': 5,
-                                  'font-size': 16}),
-                    dcc.Dropdown(id='scatter_color',
-                                 options=[
-                                    {'label': 'Sea Surface Temp',
-                                        'value': 'Sea Surface Temp'},
-                                    {'label': 'Latitude', 'value': 'Latitude'},
-                                    {'label': 'Depth', 'value': 'Depth top'},
-                                 ],
-                                 multi=False,
-                                 clearable=False,
-                                 value='Latitude',
-                                 style={'marginTop': 0}),
+            # dbc.Col(
+            #     html.Div([  # Dropdown for scatter plot
+            #         html.P('Attribute for x-axis:',
+            #                style={'fontWeight': "bold",
+            #                       'marginTop': 30,
+            #                       'marginBottom': 5,
+            #                       'font-size': 16}),
+            #         dcc.Dropdown(id='scatter_dropdown_x',
+            #                      options=scatter_options_x,
+            #                      multi=False,
+            #                      clearable=False,
+            #                      value='Sea Surface Temp',
+            #                      style={'marginTop': 0}),
+            #         html.P('Attribute for y-axis:',
+            #                style={'fontWeight': "bold",
+            #                       'marginTop': 30,
+            #                       'marginBottom': 5,
+            #                       'font-size': 16}),
+            #         dcc.Dropdown(id='scatter_dropdown_y',
+            #                      options=scatter_options_y,
+            #                      multi=False,
+            #                      clearable=False,
+            #                      value='SILVA_species_rich',
+            #                      style={'marginTop': 0}),
+            #         html.P('Color by attribute:',
+            #                style={'fontWeight': "bold",
+            #                       'marginTop': 30,
+            #                       'marginBottom': 5,
+            #                       'font-size': 16}),
+            #         dcc.Dropdown(id='scatter_color',
+            #                      options=[
+            #                         {'label': 'Sea Surface Temp',
+            #                             'value': 'Sea Surface Temp'},
+            #                         {'label': 'Latitude', 'value': 'Latitude'},
+            #                         {'label': 'Depth', 'value': 'Depth top'},
+            #                      ],
+            #                      multi=False,
+            #                      clearable=False,
+            #                      value='Latitude',
+            #                      style={'marginTop': 0}),
 
-                ]), width=2),
-            dbc.Col(
-                html.Div([  # Scatter plot
-                    dcc.Graph(id='scatter_plot')]),
-                width=7, className="scatter_plot"),
+            #     ]), width=2),
+            # dbc.Col(
+            #     html.Div([  # Scatter plot
+            #         dcc.Graph(id='scatter_plot')]),
+            #     width=7, className="scatter_plot"),
             dbc.Col(
                 html.Div([  # Bar chart
                     dcc.Graph(id='sample_count_bar'),
@@ -412,6 +428,16 @@ def store_selected_point_info(clickData):
 
 # Define your list of colors
 custom_colors = ['#ff7f0e', '#1f77b4', '#2ca02c', '#d62728', '#9467bd',
+                 '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+                 '#ff7f0e', '#1f77b4', '#2ca02c', '#d62728', '#9467bd',
+                 '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+                 '#ff7f0e', '#1f77b4', '#2ca02c', '#d62728', '#9467bd',
+                 '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+                 '#ff7f0e', '#1f77b4', '#2ca02c', '#d62728', '#9467bd',
+                 '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+                 '#ff7f0e', '#1f77b4', '#2ca02c', '#d62728', '#9467bd',
+                 '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+                 '#ff7f0e', '#1f77b4', '#2ca02c', '#d62728', '#9467bd',
                  '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
 
 # Define the labels dictionary
@@ -625,39 +651,39 @@ def display_selected_point_info(clickData):
 
 
 # ------- Scatter plot (updates based on selected attributes) -------
-@app.callback(
-    Output('scatter_plot', 'figure'),
-    [Input('year_range_slider', 'value'),
-     Input('scatter_dropdown_x', 'value'),
-     Input('scatter_dropdown_y', 'value'),
-     Input('scatter_color', 'value')]
-)
-def update_scatter_plot(year_range, attribute_x, attribute_y, color_by):
+# @app.callback(
+#     Output('scatter_plot', 'figure'),
+#     [Input('year_range_slider', 'value'),
+#      Input('scatter_dropdown_x', 'value'),
+#      Input('scatter_dropdown_y', 'value'),
+#      Input('scatter_color', 'value')]
+# )
+# def update_scatter_plot(year_range, attribute_x, attribute_y, color_by):
 
-    dff = df[df['Year'].between(year_range[0], year_range[1])]
+#     dff = df[df['Year'].between(year_range[0], year_range[1])]
 
-    plot_columns_x = ['Sea Surface Temp']
-    plot_columns_y = ['SILVA_species_rich']
+#     plot_columns_x = ['Sea Surface Temp']
+#     plot_columns_y = ['SILVA_species_rich']
 
-    # Add selected attributes to the plot columns if they exist
-    if attribute_x:
-        plot_columns_x[0] = attribute_x
+#     # Add selected attributes to the plot columns if they exist
+#     if attribute_x:
+#         plot_columns_x[0] = attribute_x
 
-    if attribute_y:
-        plot_columns_y[0] = attribute_y
+#     if attribute_y:
+#         plot_columns_y[0] = attribute_y
 
-    print(f"Plot Columns x: {plot_columns_x} and y: {plot_columns_y}")
+#     print(f"Plot Columns x: {plot_columns_x} and y: {plot_columns_y}")
 
-    # Create scatter plot
-    fig = px.scatter(dff,
-                     height=600,
-                     x=plot_columns_x[0],
-                     y=plot_columns_y[0],
-                     color=color_by,
-                     hover_name='Year',
-                     title='Scatter Plot')
+#     # Create scatter plot
+#     fig = px.scatter(dff,
+#                      height=600,
+#                      x=plot_columns_x[0],
+#                      y=plot_columns_y[0],
+#                      color=color_by,
+#                      hover_name='Year',
+#                      title='Scatter Plot')
 
-    return fig
+#     return fig
 
 
 # print(df['OS region'].unique())
@@ -678,65 +704,161 @@ region_color_mapping = {
 # Add a new column to the DataFrame to store the color for each region
 df_time['Region Color'] = df_time['OS region'].map(region_color_mapping)
 
+
 # ------- Time series plot -------
+
+def reduce_datapoints(df, focus_attribute, percentage_threshold):
+    max_val = df[focus_attribute].max()
+    min_val = df[focus_attribute].min()
+    val_range = max_val - min_val
+
+    percentage_diff = (
+        np.abs(df[focus_attribute][1:].to_numpy() -
+               df[focus_attribute][0:-1].to_numpy())
+        / val_range
+    )
+
+    mask_a = percentage_diff < percentage_threshold
+    mask_b = df["Date"][1:].to_numpy() == df["Date"][0:-1].to_numpy()
+    mask_a = np.insert(mask_a, 0, False, axis=0)
+    mask_b = np.insert(mask_b, 0, False, axis=0)
+
+    mask = mask_a * mask_b
+    mask_valid = mask == False
+
+    mask_c = df[focus_attribute].isna()
+    mask_nan = (mask_b == False) * mask_c
+
+    df_temp = df[0:]
+    df_valid = df_temp[mask_valid]
+    df_nan = df_temp[mask_nan]
+    df_nan[focus_attribute] = min_val - (val_range * 0.05)
+    max_value = max_val + (val_range * 0.1)
+    min_value = min_val - (val_range * 0.1)
+    # df_nan = df_temp[df_temp[focus_attribute].isna()]
+
+    return df_valid, df_nan, max_value, min_value
 
 
 @app.callback(
     Output('timeseries', 'figure'),
     [Input('dropdown_time', 'value'),
-     Input('selected_point_info', 'children')]
+     Input('selected_point_info', 'children'),
+     Input('map-color-input', 'value')]
 )
-def update_timeseries(selected_variable, selected_point_info):
+def update_timeseries(selected_variable, selected_point_info, color_by):
     fig = go.Figure()
+    df_temp = df_time.copy()
+    df_temp = df_temp.dropna(subset=["Latitude", "Longitude"])
+    df_temp = df_temp.sort_values(by=["Date", selected_variable])
+    df_temp.reset_index(drop=True, inplace=True)
 
-    # Extracting values that are not NaN
-    # valid_values = df_time[selected_variable].dropna()
-    valid_values = df[selected_variable][df[selected_variable] != "NaN"]
+    dff, dff_nan, max_value_plot, min_value_plot = reduce_datapoints(
+        df_temp, selected_variable, 0.01)
 
-    # Determining placeholder value based on the range of existing data
-    placeholder_value = valid_values.min() - 1 if len(valid_values) > 0 else 0
-    # placeholder_value = 0
+    # Get unique values in the selected category
+    unique_values = dff[color_by].unique()
 
-    # Plot points with value
-    if not valid_values.empty:
-        fig.add_trace(go.Scatter(x=df['Date'], y=df[selected_variable],
-                                 mode='markers', marker=dict(size=4, color='DarkSlateGray'),
-                                 name="With Value"))
+    # Generate a colorscale based on the unique values
+    num_unique_values = len(unique_values)
+    colorscale = custom_colors[:num_unique_values]
 
-    # Plot points without value
-    # missing_values_mask = df[selected_variable].isnull()
-    missing_values_mask = df[selected_variable] == "NaN"
+    # Create a mapping dictionary for colors based on the unique values
+    category_color_mapping = dict(zip(unique_values, colorscale))
 
-    if missing_values_mask.any():
-        fig.add_trace(go.Scatter(x=df['Date'][missing_values_mask], y=[placeholder_value] * missing_values_mask.sum(),
-                                 mode='markers', marker=dict(size=4, color='lightgrey'),
-                                 name="Without Value"))
+    # Map the colors based on the unique values and create a new 'Color' column
+    dff['Color'] = dff[color_by].map(category_color_mapping)
+
+    # Points with values
+    fig.add_trace(go.Scatter(
+        x=dff['Date'],
+        y=dff[selected_variable],
+        mode='markers+lines',
+        marker=dict(
+            # Use the 'Color' column for coloring the points
+            color=dff['Color'],
+        ),
+        line=dict(color='lightgrey'),
+        # line=dict(color=dff['Color']),
+
+        name="With value"),
+    )
+    # fillcolor=color_by,
+    # color_discrete_sequence=custom_colors,
+    # marker=dict(size=6,
+    #             # color='DarkSlateGray',
+    #             color=color_by,
+    #             color_discrete_sequence=custom_colors,
+    #             ),
+    #    name = "With value"),
+    # )
+
+    # Points with NaN-values
+    fig.add_trace(go.Scatter(
+        x=dff_nan['Date'],
+        y=dff_nan[selected_variable],
+        mode='markers', marker=dict(size=6, color='lightgrey'),
+        name="Without value"))
 
     # If a point is selected, add a marker for the selected point on the box plot
-    if selected_point_info and 'lat' in selected_point_info and 'lon' in selected_point_info:
+    if selected_point_info and isinstance(selected_point_info, dict) and 'lat' in selected_point_info and 'lon' in selected_point_info:
         lat = selected_point_info['lat']
         lon = selected_point_info['lon']
-        selected_row = df[(df['Latitude'] == lat) &
-                          (df['Longitude'] == lon)]
+        selected_row = df_temp[(df_temp['Latitude'] == lat) &
+                               (df_temp['Longitude'] == lon)]
 
         if not selected_row.empty:
             selected_row = selected_row.iloc[0]
             selected_value = selected_row[selected_variable]
-            # 'Date' is the column name for the x-axis
             selected_date = selected_row['Date']
 
             fig.add_trace(go.Scatter(
                 x=[selected_date], y=[selected_value], mode='markers',
-                marker=dict(color='red', size=10, opacity=0.8), name="Point",
+                marker=dict(color='red', size=15, opacity=0.75), name="Point",
                 showlegend=True))
 
-    fig.update_layout(title=f'Time Series of {selected_variable}',
-                      showlegend=True, legend=dict(x=0.9, y=0.98))
+    # Adding vertical lines for specific dates
+    years_to_mark = [2010, 2011, 2012, 2013]  # Specify the years
+    for year in years_to_mark:
+
+        # January 1st of each year
+        line_date = pd.Timestamp(year, 1, 1)
+
+        fig.add_shape(type="line",
+                      x0=line_date, y0=min_value_plot,
+                      x1=line_date, y1=max_value_plot,
+                      line=dict(color="black",
+                                width=1, dash="dash"),
+                      )
+
+        fig.add_annotation(x=line_date, y=max_value_plot,
+                           text=str(year), showarrow=False,
+                           xshift=30, yshift=-10,
+                           font=dict(color="black", size=11)
+                           )
+
+    # fig.update_traces(line_color=dff['Color'].iloc[:, 1])
+
+    fig.update_layout(
+        title=f'{selected_variable} over time',
+        title_x=0.5,  # Center the title
+        title_y=0.96,
+        margin=dict(t=40, l=40, b=20, r=20),  # Margin of plot
+        showlegend=True,
+        legend=dict(x=0.9, y=0.98),
+        xaxis=dict(
+            tickmode='linear',  # Set tick mode to linear
+            dtick='M1',  # Set tick frequency to one month (M1)
+            tickformat='%b',  # Format tick labels to display only the month abbreviation
+            # Set the range of the x-axis to start from August and end with January
+            range=['2009-08-01', '2014-01-01']
+        ))
 
     return fig
 
-
 # ------- Bar chart (sample counts) -------
+
+
 @ app.callback(
     Output('sample_count_bar', 'figure'),
     [Input('year_range_slider', 'value')]
@@ -756,4 +878,4 @@ def plot_sample_count(year_range):
 
 # start the web application
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8058)
+    app.run_server(debug=True, port=8059)
