@@ -17,6 +17,7 @@ def main():
     df_meso = pd.read_csv("Tara_Environmental_Mesoscale.csv")
     df_meso_SL = pd.read_csv("Tara_Env_Meso_SampleLocation.csv")
     df_nutri = pd.read_csv("Tara_Env_Nut.csv")
+    df_merged = pd.read_csv("Tara_BMN_Cleaned.csv")
 
     # df_bio_u = pd.read_csv("Bio_Unique.csv")
     # df_meso_u = pd.read_csv("Meso_Unique.csv")
@@ -28,6 +29,7 @@ def main():
     create_info_df(df_meso, "Tara_Meso_Info.csv")
     create_info_df(df_meso_SL, "Tara_Meso_SL_Info.csv")
     create_info_df(df_nutri, "Tara_Nutri_Info.csv")
+    create_info_df(df_merged, "Tara_BMN_Info.csv")
 
     # Print info about dataframes
     count_elements(df_bio, "bio")
@@ -35,6 +37,7 @@ def main():
     count_elements(df_meso, "meso")
     count_elements(df_meso_SL, "meso (sample location)")
     count_elements(df_nutri, "nutrients")
+    count_elements(df_merged, "merged")
 
 
 def create_info_df(df, file_name):
@@ -51,15 +54,18 @@ def create_info_df(df, file_name):
         value_count = df[column].notna().sum()
 
         # Calculate NaN count percentage
-        nan_percentage = round((nan_count / len(df)) * 100, 2)
+        nan_percentage = round((nan_count / len(df)) * 100, 1)
+
+        value_percentage = round((value_count / len(df)) * 100, 1)
 
         # Get data type of the column
         data_type = df[column].dtype
 
         # Create a dictionary containing column information
-        row = {'Column Name': column, 'NaN Count': nan_count,
-               'NaN Percentage': nan_percentage,
-               'Value Count': value_count, 'Dtype': data_type}
+        row = {'Column Name': column,
+               'Values': f"{value_count} ({value_percentage}%)",
+               'NaNs': f"{nan_count} ({nan_percentage}%)",
+               'Data type': data_type}
 
         rows.append(row)
 
