@@ -35,6 +35,8 @@ df = df.sort_values(by=['Date'])
 
 
 # Function to find numeric columns
+
+
 def numeric_columns(df):
     numeric_cols = []
     for col in df.columns:
@@ -314,10 +316,10 @@ app.layout = html.Div([
             #     html.Div([  # Scatter plot
             #         dcc.Graph(id='scatter_plot')]),
             #     width=7, className="scatter_plot"),
-            dbc.Col(
-                html.Div([  # Bar chart
-                    dcc.Graph(id='sample_count_bar'),
-                ]), width=4, className="sample_count_bar"),
+            # dbc.Col(
+            #     html.Div([  # Bar chart
+            #         dcc.Graph(id='sample_count_bar'),
+            #     ]), width=4, className="sample_count_bar"),
         ]),
 
     ], fluid=True),
@@ -427,8 +429,8 @@ def store_selected_point_info(clickData):
 # ------- Ocean map - Plot sample locations -------
 
 # Define your list of colors
-custom_colors = ['#ff7f0e', '#1f77b4', '#2ca02c', '#d62728', '#9467bd',
-                 '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
+custom_colors = ['#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#edbf33',
+                 '#8c564b', '#e377c2', '#8be04e', '#1f77b4', '#0bb4ff', '#7f7f7f',  '#bcbd22', '#17becf',
                  '#ff7f0e', '#1f77b4', '#2ca02c', '#d62728', '#9467bd',
                  '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
                  '#ff7f0e', '#1f77b4', '#2ca02c', '#d62728', '#9467bd',
@@ -460,6 +462,9 @@ legend_labels = {
 def plot_samples_map(year_range, selected_column, checklist, color_by):
 
     dff = df[df['Year'].between(year_range[0], year_range[1])]
+
+    # dff['location'] = list(zip(dff['Latitude'], dff['Longitude']))
+    # dff = dff.drop_duplicates(subset=['location'])
 
     # Filter DataFrame based on selected column and checklist options
     if 'values' in checklist:
@@ -859,23 +864,23 @@ def update_timeseries(selected_variable, selected_point_info, color_by):
 # ------- Bar chart (sample counts) -------
 
 
-@ app.callback(
-    Output('sample_count_bar', 'figure'),
-    [Input('year_range_slider', 'value')]
-)
-def plot_sample_count(year_range):
+# @ app.callback(
+#     Output('sample_count_bar', 'figure'),
+#     [Input('year_range_slider', 'value')]
+# )
+# def plot_sample_count(year_range):
 
-    dff = df[df['Year'].between(year_range[0], year_range[1])]
+#     dff = df[df['Year'].between(year_range[0], year_range[1])]
 
-    counts_per_year = dff['Year'].value_counts().sort_index()
+#     counts_per_year = dff['Year'].value_counts().sort_index()
 
-    fig = px.bar(x=counts_per_year.index, y=counts_per_year.values,
-                 labels={'x': 'Year', 'y': 'Sample Count'},
-                 title='Sample Count per Year')
+#     fig = px.bar(x=counts_per_year.index, y=counts_per_year.values,
+#                  labels={'x': 'Year', 'y': 'Sample Count'},
+#                  title='Sample Count per Year')
 
-    return fig
+#     return fig
 
 
 # start the web application
 if __name__ == '__main__':
-    app.run_server(debug=True, port=8059)
+    app.run_server(debug=False, port=8059)

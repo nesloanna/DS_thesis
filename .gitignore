@@ -73,3 +73,4 @@ data/SST/sst.day.mean.2012.nc
 data/SST/sst.day.mean.2013.nc
 *.nc
 *.csv
+load_csv.py
