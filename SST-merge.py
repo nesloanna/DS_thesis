@@ -29,18 +29,65 @@ nc_files_list = get_nc_files(sst_data_dir)
 print(nc_files_list)
 
 
-# sst_data = xr.open_dataset("sst.day.mean.1984.nc")
-
+# sst_data = xr.open_dataset("sst.day.mean.1995.nc")
 
 # # Convert longitude values from 0 to 360 to -180 to 180
 # sst_data['lon'] = xr.where(sst_data['lon'] > 180,
 #                            sst_data['lon'] - 360, sst_data['lon'])
 
-
 # # Sort longitude values
 # sst_data = sst_data.sortby('lon')
 
-# # Load datasets
+
+# Create a function to find the closest match for a given latitude, and longitude
+# def find_ocean_locations(sst_data):
+
+#     # Find the nearest latitude and longitude
+#     lats = sst_data['lat'].values
+#     lons = sst_data['lon'].values
+
+#     return lats, lons
+
+
+def find_water_locations_and_save(ds, output_file):
+    # Open the NetCDF file
+    # ds = xr.open_dataset(nc_file_path)
+
+    # Extract temperature values
+    sst_values = ds['sst']
+
+    # Check for NaN values along the time dimension
+    nan_mask = np.isnan(sst_values).all(dim='time')
+
+    # Invert the NaN mask to get locations where temperature is generally not NaN (i.e., in water)
+    water_mask = ~nan_mask
+
+    # Extract latitude and longitude coordinates where temperature is generally not NaN
+    water_lat, water_lon = np.where(water_mask)
+
+    # Create a list of tuples for latitude and longitude combinations
+    water_locations = [(ds['lat'][i].values, ds['lon'][j].values)
+                       for i, j in zip(water_lat, water_lon)]
+
+    # Create DataFrame from the list of tuples
+    df = pd.DataFrame(water_locations, columns=['Latitude', 'Longitude'])
+
+    # Save DataFrame to CSV file
+    df.to_csv(output_file, index=False)
+
+    print(f"Locations where temperature is generally not NaN (in water) saved to '{
+          output_file}'.")
+
+    return df
+
+
+# Example usage:
+# output_file = 'water_locations.csv'
+
+# sst = find_water_locations_and_save(sst_data, output_file)
+
+
+# Load datasets
 # df = pd.read_csv(
 #     "/Users/annaolsen/Desktop/Speciale/DS_thesis/data/Tara_BMN_Cleaned.csv")
 
@@ -50,27 +97,53 @@ print(nc_files_list)
 # df = df.dropna(subset=['Longitude', 'Latitude'])
 
 
-# Create a function to find the closest match for a given latitude, and longitude
-# def find_closest_location(lat, lon, sst_data):
+def subset_water_locations(sst_data):
 
-#     # Find the nearest latitude and longitude
-#     nearest_lat = sst_data['lat'].sel(lat=lat, method='nearest').values
-#     nearest_lon = sst_data['lon'].sel(lon=lon, method='nearest').values
+    # Extract temperature values
+    sst_values = sst_data['sst']
 
-#     return nearest_lat, nearest_lon
+    # Check for NaN values along the time dimension
+    nan_mask = np.isnan(sst_values).all(dim='time')
+
+    # Invert the NaN mask to get locations where temperature is generally not NaN (i.e., in water)
+    water_mask = ~nan_mask
+
+    # Subset the sst_data dataset to keep only water locations
+    water_data = sst_data.where(water_mask, drop=True)
+
+    return water_data
 
 
-# # Apply the function to each row in 'df'
+# water_data = subset_water_locations(sst_data)
+
+
+def find_closest_location(lat, lon, water_data):
+
+    # # Find the nearest latitude and longitude
+    # nearest_lat = water_data['lat'].sel(lat=lat, method='nearest').values
+    # nearest_lon = water_data['lon'].sel(lon=lon, method='nearest').values
+
+    # Find the nearest latitude and longitude within the water locations
+    nearest_lat = water_data['lat'].values[np.abs(
+        water_data['lat'].values - lat).argmin()]
+    nearest_lon = water_data['lon'].values[np.abs(
+        water_data['lon'].values - lon).argmin()]
+
+    return nearest_lat, nearest_lon
+
+
+# Apply the function to each row in 'df'
 # df[['lat', 'lon']] = \
 #     df.apply(lambda row: pd.Series(find_closest_location(
-#         row['Latitude'], row['Longitude'], sst_data)), axis=1)
+#         row['Latitude'], row['Longitude'], water_data)), axis=1)
 
 # Display the DataFrame with closest matches
 # print(df)
 
 
-# df.to_csv("Tara_SST_locations.csv", index=False)
-
+# df.to_csv("Tara_SST_locations_X.csv", index=False)
+# df = pd.read_csv(
+#     "/Volumes/PortableSSD/Speciale/SST/SST_daily/Tara_SST_locations_XYZ.csv")
 
 # # Convert 'lat' and 'lon' columns to tuples
 # df['location'] = list(zip(df['lat'], df['lon']))
@@ -82,18 +155,104 @@ print(nc_files_list)
 # df_unique_locations[['lat', 'lon']] = pd.DataFrame(
 #     df_unique_locations['location'].tolist(), index=df_unique_locations.index)
 
-# Drop the 'location' column
+# # Drop the 'location' column
 # df_unique_locations.drop(columns=['location'], inplace=True)
 
-# Reset the index after dropping rows
+# # Reset the index after dropping rows
 # df_unique_locations.reset_index(drop=True, inplace=True)
 
 # # Display the result
 # print(df_unique_locations)
 
 
+# df_unique_locations.to_csv("Tara_SST_unique_locations_XYZ.csv", index=False)
+
+
+def find_land_locations_and_save(ds, output_file):
+    # Open the NetCDF file
+    # ds = xr.open_dataset(nc_file_path)
+
+    # Extract temperature values
+    sst_values = ds['sst']
+
+    # Check for NaN values along the time dimension
+    nan_mask = np.isnan(sst_values).all(dim='time')
+
+    # Extract latitude and longitude coordinates where temperature is always NaN
+    nan_lat, nan_lon = np.where(nan_mask)
+
+    # Create a list of tuples for latitude and longitude combinations
+    land_locations = [(ds['lat'][i].values, ds['lon'][j].values)
+                      for i, j in zip(nan_lat, nan_lon)]
+
+    # Create DataFrame from the list of tuples
+    df = pd.DataFrame(land_locations, columns=['Latitude', 'Longitude'])
+
+    # Save DataFrame to CSV file
+    df.to_csv(output_file, index=False)
+
+    print(f"Locations where sst is always NaN saved to '{output_file}'.")
+
+    return df
+
+
+# output_file = 'land_locations.csv'
+# find_land_locations_and_save(sst_data, output_file)
+
+if False:
+
+    # Load datasets
+    df = pd.read_csv(
+        "/Users/annaolsen/Desktop/Speciale/DS_thesis/data/Tara_BMN_Cleaned.csv")
+
+    df = df[["Sample ID", "Latitude", "Longitude", "Sea Surface Temp",
+             "Date", "OS region"]]
+
+    df = df.dropna(subset=['Longitude', 'Latitude'])
+
+    # Create a function to find the closest match for a given latitude, and longitude
+
+    def find_closest_location(lat, lon, sst_data):
+
+        # Find the nearest latitude and longitude
+        nearest_lat = sst_data['lat'].sel(lat=lat, method='nearest').values
+        nearest_lon = sst_data['lon'].sel(lon=lon, method='nearest').values
+
+        return nearest_lat, nearest_lon
+
+    # Apply the function to each row in 'df'
+    df[['lat', 'lon']] = \
+        df.apply(lambda row: pd.Series(find_closest_location(
+            row['Latitude'], row['Longitude'], sst_data)), axis=1)
+
+    # Display the DataFrame with closest matches
+    print(df)
+
+    df.to_csv("Tara_SST_locations.csv", index=False)
+
+    # Convert 'lat' and 'lon' columns to tuples
+    df['location'] = list(zip(df['lat'], df['lon']))
+
+    # Extract unique combinations of latitudes and longitudes
+    df_unique_locations = df[['location']].drop_duplicates()
+
+    # Convert the 'location' column back to separate 'lat' and 'lon' columns
+    df_unique_locations[['lat', 'lon']] = pd.DataFrame(
+        df_unique_locations['location'].tolist(), index=df_unique_locations.index)
+
+    # Drop the 'location' column
+    df_unique_locations.drop(columns=['location'], inplace=True)
+
+    # Reset the index after dropping rows
+    df_unique_locations.reset_index(drop=True, inplace=True)
+
+    # Display the result
+    print(df_unique_locations)
+
+
 # df_unique_locations.to_csv("Tara_SST_unique_locations.csv", index=False)
-df_unique_locations = pd.read_csv("Tara_SST_unique_locations.csv")
+# df_unique_locations = pd.read_csv("Tara_SST_unique_locations.csv")
+df_unique_locations = pd.read_csv("Tara_SST_unique_locations_XYZ.csv")
 
 
 def merge_subset_sst_data(file_paths, locations_df):
@@ -118,9 +277,20 @@ def merge_subset_sst_data(file_paths, locations_df):
     # Loop through each file path
     for file_path in tqdm(file_paths[30:35]):
 
+        print(file_path)
         # Load external SST data
         dataset = xr.open_dataset(file_path)
         dataset.load()
+
+        # Sort longitude values
+        dataset = dataset.sortby('lon')
+
+        # Convert longitude values from 0 to 360 to -180 to 180
+        dataset['lon'] = xr.where(dataset['lon'] > 180,
+                                  dataset['lon'] - 360, dataset['lon'])
+
+        # Sort longitude values
+        dataset = dataset.sortby('lon')
 
         rows = []
 
@@ -156,6 +326,7 @@ def merge_subset_sst_data(file_paths, locations_df):
 
 
 # merged_data = merge_subset_sst_data(nc_files_list, df_unique_locations)
+
 # nc_files_list[0:5]   -> 1981-1985
 # nc_files_list[5:10]  -> 1986-1990
 # nc_files_list[10:15] -> 1991-1995
@@ -163,7 +334,10 @@ def merge_subset_sst_data(file_paths, locations_df):
 # nc_files_list[20:25] -> 2001-2005
 # nc_files_list[25:30] -> 2006-2010
 # nc_files_list[30:35] -> 2011-2015 (2011-2013)
-sst_csv_folder = "/Users/annaolsen/Desktop/Speciale/DS_thesis/data/SST/merged"
+
+
+# sst_csv_folder = "/Users/annaolsen/Desktop/Speciale/DS_thesis/data/SST/merged"
+sst_csv_folder = "/Volumes/PortableSSD/Speciale/SST/SST_daily/SST_subsets"
 
 os.chdir(sst_csv_folder)
 print(os.getcwd())
@@ -189,8 +363,10 @@ for file in csv_files_list:
 
 merged_df = pd.concat(dataframes, ignore_index=True)
 
+print(merged_df.shape)
+
 # Write the merged DataFrame to a new CSV file
-merged_df.to_csv('merged_SST.csv', index=False)
+merged_df.to_csv('merged_SST_1981_2013.csv', index=False)
 
 
 # merged_data.to_csv("SST_1981_2013.csv", index=False)
