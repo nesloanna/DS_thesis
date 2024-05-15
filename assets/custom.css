@@ -1,0 +1,409 @@
+/* --------- Background color --------- */
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #365564; /* Set the background color for the entire body */
+    overflow-y: auto; /* Ensure vertical scrolling */
+}
+
+
+/* --------- Links --------- */
+
+a {
+    color: #095b70 !important; 
+    text-decoration: none;
+}
+
+a:hover {
+    color: #128baa !important; 
+}
+
+/* Colomns.... */
+
+.column {
+    padding-right: 0px; 
+    padding-left: 0px; 
+}
+
+
+/* --------- Navigation bar --------- */
+
+.navbar {
+    padding-top: 10px;  
+    padding-bottom: 10px;  
+    height: auto; 
+}
+
+/* Link color styles inside nav-item divs */
+.navbar-nav .nav-link,
+.navbar-nav .nav-item .nav-link {
+    color: #ffffff !important;
+}
+
+/* Navbar brand */
+.navbar-brand {
+    color: #ffffff !important; 
+    font-size: 20px;
+}
+
+/* Navbar brand - on hover */
+.navbar-brand:hover {
+    color: #209fb2 !important;
+}
+
+
+/* Navlink - hover */
+.navbar-nav .nav-item .nav-link:hover {
+    color: #ffffff !important;
+    text-decoration: underline;
+}
+
+/* Navlink - Active links */
+.navbar-nav .nav-item .nav-link.active {
+    color: #599ab5 !important; 
+    
+}
+
+
+
+/* --------- Filtered count --------- */
+.html-p {
+    line-height: 1; 
+    margin-bottom: 5px; 
+}
+
+.flex-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+}
+
+.filtered-count {
+    font-size: 15px;
+    font-weight: bold;
+}
+
+#all-data {
+    text-align: left;
+    font-weight: bold;
+    margin: 0;
+}
+
+
+
+/* --------- Text elements --------- */
+p {
+    font-size: 15px;
+}
+
+h6 {
+    font-size: 16px;
+    font-weight: normal;
+    margin-bottom: 10px;
+    margin-top: 15px;
+}
+
+h5 {
+    font-size: 17px; 
+}
+
+h4 {
+    font-size: 22px;
+}
+
+h3 {
+    font-size: 24px;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+h2 {
+    font-size: 26px;
+}
+
+/* --------- Select values (checklist, dropdown) --------- */
+
+/* Checklist */
+.form-check-label {
+    font-size: 14px; 
+    margin-top: 0px;
+}
+
+/* Select value labels */
+.Select-value-label {
+    font-size: 13px; 
+}
+
+
+/* Select multi-value wrapper */
+.Select-multi-value-wrapper {
+    font-size: 13px; 
+}
+
+/* Select placeholder */
+.Select-multi-value-wrapper .Select-placeholder {
+    font-size: 13px; 
+}
+
+/* Select input */
+.Select-multi-value-wrapper .Select-input input {
+    font-size: 13px; 
+}
+
+/* Select menu outer */
+.Select-menu-outer {
+    font-size: 13px; 
+}
+
+/* Select menu options */
+.VirtualizedSelectOption {
+    font-size: 13px; 
+}
+
+
+
+/* Dropdown container */
+/* .dash-dropdown {
+    margin-top: 5px; 
+    margin-bottom: 5px; 
+    margin-left: 0px; 
+    margin-right: 0px;
+} */
+
+
+/* --------- Sidebar --------- */
+.sidebar-container {
+    margin-top: 15px;
+    margin-right: 0px;
+    padding-left: 18px;
+    padding-right: 15px;
+    padding-top: 20px;
+    padding-bottom: 15px;
+    background-color: #f8f9fa;
+}
+
+.sidebar-heading {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.sidebar-s-heading {
+    font-size: 19px;
+    margin-bottom: 15px;
+}
+
+.sidebar-divider {
+    border: 0.8px solid #2f2f2f;
+    margin-bottom: 10px;
+    margin-top: 10px;
+}
+
+.sidebar-text {
+    font-size: 15px;
+    margin: 0; 
+    line-height: 1.2; 
+    margin-bottom: -10px;
+}
+
+.sidebar-radio-items {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.sidebar-dropdown {
+    margin-top: -10px; 
+    margin-bottom: 2px; 
+    margin-left: 0px; 
+    margin-right: 0px;
+    padding: 0;
+}
+
+
+
+.timeline-dropdown {
+    margin-top: 0px; 
+    margin-bottom: 0px; 
+    margin-left: 0px; 
+    margin-right: 0px;
+    padding: 8px;
+}
+
+
+
+/*  --------- Tabs ---------- */
+
+.nav-tabs {
+    width: 100%;
+    margin-bottom: 30px;
+}
+
+.nav-tabs .nav-item {
+    width: 50%; /* Make each tab equally big */
+    text-align: center; 
+}
+
+.nav-tabs .nav-link {
+    width: 100%; 
+    text-align: center; 
+    border-width: 1px;
+    border-radius: 1px; 
+    border-bottom: none; 
+    border-top: solid 5px transparent;
+    color: #2f2f2f; 
+}
+
+.nav-tabs .nav-item .nav-link.active {
+    color: #2f2f2f;
+    border-top: solid 5px;
+    border-top-color: #1987a3;
+}
+
+
+/* --------- Containers --------- */
+
+.map-container {
+    margin-top: 15px;
+    margin-right: 0px;
+    margin-left: 0px;
+    margin-bottom: 0px;
+    padding-left: 7px;
+    padding-right: 7px;
+    padding-top: 7px;
+    padding-bottom: 7px;
+    background-color: #ffffff;
+}
+
+.about-container {
+    margin-top: 15px;
+    margin-bottom: 15px;
+    margin-left: 10px;
+    margin-right: 10px;
+    margin-bottom: 40px;
+    padding-left: 50px;
+    padding-right: 45px;
+    padding-top: 30px;
+    padding-bottom: 50px;
+    background-color: #ffffff;
+}
+
+.tabs-container {
+    margin-top: 15px;
+    margin-right: 0px;
+    margin-bottom: -30px;
+    padding-left: 0px;
+    padding-right: 0px;
+    padding-top: 0px;
+    padding-bottom: 1px;
+    background-color: #ffffff;
+}
+
+
+.box-info-container {
+    margin-top: -30px;
+    margin-right: 0px;
+    margin-bottom: 15px;
+    padding-left: 20px;
+    padding-right: 15px;
+    padding-top: 20px;
+    padding-bottom: 10px;
+    background-color: #ffffff;
+}
+
+.scatter-container {
+    margin-top: 15px;
+    margin-right: 0px;
+    margin-bottom: 15px;
+    padding-left: 20px;
+    padding-right: 15px;
+    padding-top: 20px;
+    padding-bottom: 30px;
+    background-color: #ffffff;
+}
+
+
+.figure-container {
+    margin-top: 15px;
+    margin-right: 0px;
+    margin-bottom: 15px;
+    padding-left: 20px;
+    padding-right: 15px;
+    padding-top: 20px;
+    padding-bottom: 10px;
+    background-color: #ffffff;
+}
+
+.timeline-container {
+    margin-top: 3px;
+    margin-right: 0px;
+    margin-bottom: 40px;
+    padding-left: 10px;
+    padding-right: 1px;
+    padding-top: 0px;
+    padding-bottom: 10px;
+    background-color: #ffffff;
+}
+
+.time-container {
+    margin-top: 3px;
+    margin-right: 0px;
+    margin-left: -30px;
+    margin-bottom: 0px;
+    padding-left: 0px;
+    padding-right: 30px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    background-color: #365564;
+}
+
+.time-container-p{
+    color: #ffffff;
+    font-style: italic;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 15px;
+    text-align: right;
+}
+
+/* --------- Table styling --------- */
+
+.table-style {
+    margin-top: 10px;
+    margin-bottom: 0px;
+    padding: 0px;
+    background-color: #ffffff;
+    line-height: 1.2;
+    overflow-x: auto;
+    width: 100%;
+}
+
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td .dash-cell-value.unfocused {
+    font-size: 11px;
+}
+
+
+.table-style .previous-next-container button.previous-page,
+.table-style .previous-next-container button.next-page {
+    display: none;
+}
+
+
+
+/* --------- Table buttons --------- */
+
+.dash-table-container .previous-next-container button.first-page {
+    background-color: white;
+    font-size: 10px;
+}
+
+
+.dash-table-container .previous-next-container .page-number .current-page-container input.current-page {
+    font-weight: bold;
+    font-size: 11px;
+}
+
+.page-number, .last-page {
+    font-size: 11px;
+}
