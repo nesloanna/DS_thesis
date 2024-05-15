@@ -29,6 +29,8 @@ all_data_points = len(df)
 
 h6_style = {'fontWeight': "bold", 'marginTop': 20, 'marginBottom': 10}
 
+df = df.assign(**{"no_col": "Sample point"})
+
 df_time = df.copy()
 
 df = df.sort_values(by=['Date'])
@@ -106,13 +108,14 @@ sidebar = html.Div([
     html.H6('Color points by category:', style=h6_style),
     dbc.RadioItems(
         options=[
+            {"label": 'No colors', "value": 'no_col'},
             {"label": 'Marine biome', "value": 'MP biome'},
             {"label": 'Ocean and sea region', "value": 'OS region'},
             {"label": 'Depth layer zone', "value": 'Depth layer zone'},
             {"label": 'Biogeographical province', "value": 'BG province'},
             {"label": 'Campaign', "value": 'Campaign'},
         ],
-        value="OS region",
+        value="no_col",
         id="map-color-input",
         style={'marginTop': 10, 'marginBottom': 25},
     ),
@@ -429,7 +432,7 @@ def store_selected_point_info(clickData):
 # ------- Ocean map - Plot sample locations -------
 
 # Define your list of colors
-custom_colors = ['#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#edbf33',
+custom_colors = ['#5F676C', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#edbf33',
                  '#8c564b', '#e377c2', '#8be04e', '#1f77b4', '#0bb4ff', '#7f7f7f',  '#bcbd22', '#17becf',
                  '#ff7f0e', '#1f77b4', '#2ca02c', '#d62728', '#9467bd',
                  '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
@@ -444,6 +447,7 @@ custom_colors = ['#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#edbf33',
 
 # Define the labels dictionary
 legend_labels = {
+    "no_col": "",
     "MP biome": "Marine biome",
     "OS region": "Ocean and sea region",
     "Depth layer zone": "Depth layer zone",
@@ -883,4 +887,4 @@ def update_timeseries(selected_variable, selected_point_info, color_by):
 
 # start the web application
 if __name__ == '__main__':
-    app.run_server(debug=False, port=8059)
+    app.run_server(debug=True, port=8059)
