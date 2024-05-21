@@ -18,9 +18,12 @@ import math
 # df = pd.read_csv(
 #     "https://github.com/nesloanna/TARA_deploy_app/releases/download/dataset/TARA_mhws_Dash.csv")
 
-df = pd.read_csv(
-    "https://github.com/nesloanna/TARA_deploy_app/files/15189150/TARA_Unique_Dash.csv")
+# df = pd.read_csv(
+#     "https://github.com/nesloanna/TARA_deploy_app/files/15189150/TARA_Unique_Dash.csv")
 
+
+df = pd.read_csv(
+    "/Users/annaolsen/Desktop/Speciale/DS_thesis/data/TARA_mhws_Dash.csv")
 # df = pd.read_csv("TARA_mhws_Dash.csv")
 # df = pd.read_csv("TARA_Unique_Dash.csv")
 
@@ -333,7 +336,7 @@ layout_home = html.Div([
                             {"label": 'Depth layer zone',
                                 "value": 'Depth Layer Zone'},
                             {"label": 'Campaign', "value": 'Campaign'},
-                            {"label": 'MHWs', "value": 'category'},
+                            {"label": 'Marine Heatwaves', "value": 'MHW-category'},
                             {"label": 'No colors', "value": 'no_col'},
                         ],
                         value='OS region',  # Default value
@@ -586,18 +589,20 @@ def store_selected_point_info(map_clicked, timeline_clicked):
 
 # ------- Ocean map - Plot sample locations -------
 # Define your list of colors
-custom_colors = ['#1f77b4', '#ff8b0e', '#9467bd', '#f04630', '#2ca02c', '#f7da1b',
-                 '#e377c2', '#8BC34A', '#6F4E37', '#7f7f7f', '#bcbd22', '#17becf',
-                 '#ff8b0e', '#1f77b4', '#9467bd', '#f04630', '#2ca02c',
-                 '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
-                 '#ff8b0e', '#1f77b4', '#9467bd', '#f04630', '#2ca02c',
-                 '#e377c2', '#0f3191', '#bcbd22', '#17becf',
-                 '#ff8b0e', '#1f77b4', '#9467bd', '#f04630', '#2ca02c',
-                 '#e377c2', '#7f7f7f', '#bcbd22', '#17becf',
-                 '#ff8b0e', '#1f77b4', '#9467bd', '#f04630', '#2ca02c',
-                 '#e377c2', '#0f3191', '#bcbd22', '#17becf',
-                 '#ff8b0e', '#1f77b4', '#9467bd', '#f04630', '#2ca02c',
-                 '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+custom_colors = [
+    '#0277BD', '#FFA726', '#C2185B', '#9CCC65', '#EA80FC',
+    '#FFEE58', '#00897B', '#EC7063', '#7E57C2', '#82E0AA', '#795548',
+    '#689F38', '#26C6DA', '#8BC34A', '#239B56',
+    '#FFEB3B', '#81C784', '#26A69A', '#EF5350', '#229954',
+    '#607D8B', '#AB47BC', '#73C6B6', '#F9A825', '#4DD0E1',
+    '#2471A3', '#C39BD3', '#F5B7B1', '#00BCD4', '#AB47BC',
+    '#01579B', '#48C9B0', '#16A085', '#388E3C', '#9575CD',
+    '#1976D2', '#3F51B5', '#4CAF50', '#626567', '#FF80AB',
+    '#00B8D4', '#CE93D8', '#E91E63', '#7D3C98', '#ABEBC6',
+    '#2E7D32', '#F4D03F', '#283593', '#80DEEA', '#FF8F00',
+    '#1A5276', '#B388FF', '#76448A', '#2ECC71', '#839192',
+    '#304FFE',
+]
 
 # Define the labels dictionary
 legend_labels = {
@@ -605,7 +610,7 @@ legend_labels = {
     "MP biome": "Marine Biome",
     "Depth Layer Zone": "Depth Layer",
     "Campaign": "Campaign",
-    "category": "MHWs Category",
+    "MHW-category": "Marine Heatwaves",
     "no_col": "No color",
 }
 
@@ -640,7 +645,7 @@ def plot_samples_map(year_range, selected_column, checklist, color_by, selected_
                                     'Station', 'Campaign',
                                     'OS region', 'MP biome',
                                     'Depth Layer Zone', 'Depth top',
-                                    'Sea Surface Temp', 'category',
+                                    'Sea Surface Temp', 'MHW-category',
                                     'Latitude', 'Longitude'],
                                 )
 
@@ -668,7 +673,7 @@ def plot_samples_map(year_range, selected_column, checklist, color_by, selected_
         margin={"r": 0, "l": 0, "b": 0, "t": 0},
     )
 
-    legend_show = ["MP biome", "OS region", "Depth Layer Zone", "category"]
+    legend_show = ["MP biome", "OS region", "Depth Layer Zone", "MHW-category"]
 
     if color_by in legend_show:
         map_fig.update_layout(
@@ -725,7 +730,6 @@ def plot_samples_map(year_range, selected_column, checklist, color_by, selected_
                 center=dict(lat=latitude, lon=longitude),
                 zoom=1.5,  # Adjust zoom level as needed
             ),
-            showlegend=False,
         )
 
         # Update the marker style of the corresponding point on the map
@@ -734,13 +738,16 @@ def plot_samples_map(year_range, selected_column, checklist, color_by, selected_
             lon=[longitude],
             mode='markers',
             marker=dict(
-                size=14,
-                color='black',  # Change marker color to black
-                opacity=0.7,
+                size=15,
+                color='red',  # Change marker color to black
+                opacity=0.75,
                 symbol='circle',  # Change marker symbol to circle
             ),
+            name='Selected point',
             hoverinfo='text',
-            text=hover_text,
+            text="<b>Seleced Point </b> <br><br>" \
+            f"{selected_row['Sample ID']} <br>",
+            # text=hover_text,
         ))
 
         return [map_fig, f"{count}"]
@@ -772,7 +779,8 @@ def display_selected_point_info(selected_point):
             "Value": selected_row['Depth Layer Zone']},
         {"Attribute": "Depth (top)", "Value": selected_row['Depth top']},
         {"Attribute": "SST", "Value": selected_row['Sea Surface Temp']},
-        {"Attribute": "MHW category", "Value": selected_row['category']},
+        {"Attribute": "Marine Heatwave category",
+            "Value": selected_row['MHW-category']},
         {"Attribute": "Nitrate", "Value": selected_row['Nitrate']},
         {"Attribute": "Phosphate",
          "Value": selected_row['Phosphate median']},

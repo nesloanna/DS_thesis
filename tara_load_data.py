@@ -10,26 +10,18 @@ print(os.getcwd())
 df1 = pd.read_excel('TARA_SAMPLES_CONTEXT_ENV-DEPTH-NUT_20170515.xlsx',
                     header=None, skiprows=17)
 
+# Set the column names from the values in the 18th row
+df1.columns = df1.iloc[0]  # Set new column names
 
-# Reset index and set the header to the second row
-df1.columns = df1.iloc[0]
-df1 = df1.iloc[1:].reset_index(drop=True)
+col_info = df1.iloc[3]  # Get additional info about columns (row 21 in Excel)
 
-# Extract the header and the first 3 rows into info_df
-info_df = df1.iloc[:3]
+# Remove first 4 rows (19-22 in Excel) from data
+df1 = df1.iloc[5:].reset_index(drop=True)
 
-# Extract the header and all rows except the first 3 into df1
-df1 = df1.iloc[4:]
-
-# Remove the "PARAMTER" column and drop the second row
+# Remove the "PARAMTER" column
 df1.drop(columns=['PARAMETER'], inplace=True)
 
-df1 = df1.apply(lambda x: x.replace(',', '.') if isinstance(x, str) else x)
-
-# Reset the index for both DataFrames
-info_df.reset_index(drop=True, inplace=True)
-df1.reset_index(drop=True, inplace=True)
-
+# New column names
 new_col_names = ['Sample ID', 'Sample ID (Bio)', 'Sample ID (ENA)', 'Station',
                  'Event', 'Env feature', 'Depth nominal', 'Depth top/min',
                  'Depth bot/max', 'Size frac lower', 'Size frac upper',
@@ -44,11 +36,10 @@ new_col_names = ['Sample ID', 'Sample ID (Bio)', 'Sample ID (ENA)', 'Station',
                  'Silicate lower', 'Silicate median', 'Silicate upper',
                  'Silicate max']
 
-
+# Change column names
 df1.columns = new_col_names
 
-# Save the DataFrames as CSV files
-info_df.to_csv('Tara_Nutri_cols.csv', index=False)
+# Save the DataFrame as CSV file
 df1.to_csv('Tara_Env_Nut.csv', index=False)
 
 
