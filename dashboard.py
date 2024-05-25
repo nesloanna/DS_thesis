@@ -231,6 +231,7 @@ sidebar = html.Div([
             step=1,
             marks=year_marks,
             value=[year_min, year_max],
+            tooltip={"placement": "bottom", "always_visible": False},
             # vertical=False,
         ), style={'marginTop': '-10px', 'marginBottom': '14px',
                   'marginLeft': '-10px', 'marginRight': '-10px',
@@ -241,7 +242,8 @@ sidebar = html.Div([
     dcc.Dropdown(
         id='value_dropdown',
         options=dropdown_options,
-        value='Nitrate',  # Default value
+        # value='Nitrate',  # Default value
+        placeholder='Choose an attribute',
         clearable=False,
         className="sidebar-dropdown",
     ),
@@ -495,7 +497,7 @@ def update_box_plot(selected_point_info, selected_column, color_category):
 
     fig = go.Figure(
         data=[go.Box(y=df[selected_column],
-                     boxpoints=False,  # 'all', 'outliers', or 'suspectedoutliers'
+                     boxpoints=False,  # 'all', 'outliers', or 'suspectedoutliers' or False
                      jitter=0.7,  # add some jitter for a better separation between points
                      pointpos=-1.8,  # relative position of points wrt box
                      name="All",  # Set the name for the first box plot
@@ -606,7 +608,7 @@ custom_colors = [
 
 # Define the labels dictionary
 legend_labels = {
-    "OS region": "OS Region",
+    "OS region": "OS<br>Region",
     "MP biome": "Marine Biome",
     "Depth Layer Zone": "Depth Layer",
     "Campaign": "Campaign",
@@ -639,7 +641,7 @@ def plot_samples_map(year_range, selected_column, checklist, color_by, selected_
                                 zoom=0.8,
                                 height=550,
                                 # width=800,
-                                title=None, opacity=.5,
+                                title=None, opacity=.6,
                                 custom_data=[
                                     'Sample ID', 'Date',
                                     'Station', 'Campaign',
@@ -670,7 +672,7 @@ def plot_samples_map(year_range, selected_column, checklist, color_by, selected_
 
     map_fig.update_layout(
         mapbox_style='mapbox://styles/kortplotly/clsyukswv002401p8a4xtbbm3',
-        margin={"r": 0, "l": 0, "b": 0, "t": 0},
+        margin={"r": 0, "l": 0, "b": 10, "t": 0},
     )
 
     legend_show = ["MP biome", "OS region", "Depth Layer Zone", "MHW-category"]
@@ -681,24 +683,30 @@ def plot_samples_map(year_range, selected_column, checklist, color_by, selected_
             legend=dict(
                 orientation="h",
                 x=0,
-                y=0,
-                yanchor="top",
+                y=-0.095,
+                yanchor="bottom",
                 xanchor="left",
                 xref='paper',  # paper / container
+                yref='paper',
                 bordercolor="White",
                 borderwidth=5,
-                bgcolor="White",
-                title=legend_title,  # Set the legend title dynamically
-                # valign=['top', 'middle', 'bottom'],  # , 'middle', 'bottom'
+                # bgcolor="White",
+                # Set the legend title dynamically
+                title=legend_title,
+                indentation=-6,
+                font=dict(size=12),
             ))
     else:
+
         map_fig.update_layout(
             showlegend=False,
-
+            margin={"r": 0, "l": 0, "b": 0, "t": 0},
         )
 
     # to preserve the UI settings such as zoom and panning in the update
-    map_fig['layout']['uirevision'] = 'unchanged'
+    # map_fig['layout']['uirevision'] = 'unchanged'
+    # Apply the configuration options to the figure
+    # Apply the configuration options directly to the figure
 
     # Get the count of filtered records
     count = len(dff)
@@ -728,7 +736,7 @@ def plot_samples_map(year_range, selected_column, checklist, color_by, selected_
         map_fig.update_layout(
             mapbox=dict(
                 center=dict(lat=latitude, lon=longitude),
-                zoom=1.5,  # Adjust zoom level as needed
+                zoom=1.7,  # Adjust zoom level as needed
             ),
         )
 
@@ -1026,7 +1034,7 @@ def update_timeline(selected_variable, selected_point_info, color_by):
     if color_by != "no_col":
         fig.update_layout(
             legend=dict(
-                title=f'Colored by {color_by}',
+                title=f'Colored by<br>{color_by}',
             )
         )
 
