@@ -15,11 +15,11 @@ import math
 # print(os.getcwd())
 
 # ------- Load and prepare datasets -------
-# df = pd.read_csv(
-#     "https://github.com/nesloanna/TARA_deploy_app/releases/download/dataset/TARA_mhws_Dash.csv")
+df = pd.read_csv(
+    "https://github.com/nesloanna/TARA_deploy_app/releases/download/data_new/dash_Tara_2024.csv")
 
 
-df = pd.read_csv("dash_Tara_2024.csv")
+# df = pd.read_csv("dash_Tara_2024.csv")
 
 all_data_points = len(df)
 
@@ -695,16 +695,16 @@ def plot_samples_map(year_range, selected_column, checklist, color_by, selected_
         longitude = selected_row['Longitude']
 
         # Update the hover text to include additional information
-        hover_text = f'<b>Selected Point</b> <br><br>' \
-            f'{selected_row['Sample ID']} <br>' \
-            f'Date:</b> {selected_row['Date']} <br>' \
-            f'Station: {selected_row['Station']}<br>' \
-            f'Campaign: {selected_row['Campaign']}<br> ' \
-            f'{selected_row['OS region']}<br> ' \
-            f'{selected_row['MP biome']}<br> ' \
-            f'{selected_row['Depth Layer Zone']}<br> ' \
-            f'Lat: {selected_row['Latitude']:.3f}, Lon: {
-                selected_row['Longitude']:.3f}'
+        # hover_text = f'<b>Selected Point</b> <br><br>' \
+        #     f'{selected_row['Sample ID']} <br>' \
+        #     f'Date:</b> {selected_row['Date']} <br>' \
+        #     f'Station: {selected_row['Station']}<br>' \
+        #     f'Campaign: {selected_row['Campaign']}<br> ' \
+        #     f'{selected_row['OS region']}<br> ' \
+        #     f'{selected_row['MP biome']}<br> ' \
+        #     f'{selected_row['Depth Layer Zone']}<br> ' \
+        #     f'Lat: {selected_row['Latitude']:.3f}, Lon: {
+        #         selected_row['Longitude']:.3f}'
 
         # Update the layout and return the modified figure
         map_fig.update_layout(
@@ -727,8 +727,7 @@ def plot_samples_map(year_range, selected_column, checklist, color_by, selected_
             ),
             name='Selected point',
             hoverinfo='text',
-            text="<b>Seleced Point </b> <br><br>" \
-            f"{selected_row['Sample ID']} <br>",
+            text="<br><b>Seleced Point </b> <br><br>"
             # text=hover_text,
         ))
 
