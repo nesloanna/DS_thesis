@@ -242,6 +242,7 @@ h2 {
 .nav-tabs .nav-item {
     width: 50%; /* Make each tab equally big */
     text-align: center; 
+    background-color: #daeef8;
 }
 
 .nav-tabs .nav-link {
@@ -249,8 +250,18 @@ h2 {
     text-align: center; 
     border-width: 1px;
     border-radius: 1px; 
-    border-bottom: none; 
-    border-top: solid 5px transparent;
+    border-bottom: 0px; 
+    border-top: solid 5px #daeef8;
+    color: #2f2f2f; 
+}
+
+.nav-tabs .nav-link:hover {
+    width: 100%; 
+    text-align: center; 
+    border-width: 1px;
+    border-radius: 1px; 
+    border-bottom: 0px; 
+    border-top: solid 5px #81b1bd;
     color: #2f2f2f; 
 }
 
@@ -258,6 +269,8 @@ h2 {
     color: #2f2f2f;
     border-top: solid 5px;
     border-top-color: #1987a3;
+    background-color: #ffffff;
+    border-bottom: 0px;
 }
 
 

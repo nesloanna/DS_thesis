@@ -18,27 +18,13 @@ import math
 # df = pd.read_csv(
 #     "https://github.com/nesloanna/TARA_deploy_app/releases/download/dataset/TARA_mhws_Dash.csv")
 
-# df = pd.read_csv(
-#     "https://github.com/nesloanna/TARA_deploy_app/files/15189150/TARA_Unique_Dash.csv")
 
-
-df = pd.read_csv(
-    "/Users/annaolsen/Desktop/Speciale/DS_thesis/data/TARA_mhws_Dash.csv")
-# df = pd.read_csv("TARA_mhws_Dash.csv")
-# df = pd.read_csv("TARA_Unique_Dash.csv")
-
-# print(df.shape)
-
-# Removing rows with empty longitude or latitude
-df = df.dropna(subset=['Latitude', 'Longitude'])
-
-# Reset the index after dropping rows
-df.reset_index(drop=True, inplace=True)
-
+df = pd.read_csv("dash_Tara_2024.csv")
 
 all_data_points = len(df)
 
-df = df.assign(**{"no_col": "Sample point"})
+# Make new column 'No category' for coloring
+df = df.assign(**{"No category": "Sample point"})
 
 df_time = df.copy()
 
@@ -81,7 +67,13 @@ dropdown_options = [{'label': col, 'value': col} for col in df.columns[1:]]
 
 # Dropdown - numerical attributes
 dropdown_numerical = [{'label': col, 'value': col}
-                      for col in numeric_cols if col != 'Date']
+                      for col in numeric_cols if col != 'Year']
+
+scatter_color_cols = ['Depth Layer', 'MHW count',
+                      'MHW category', 'MP biome'] + numeric_cols
+
+dropdown_scatter_color = [{'label': col, 'value': col}
+                          for col in scatter_color_cols if col != 'Year']
 
 
 # Define the navigation bar
@@ -123,25 +115,7 @@ layout_focus = html.Div([
                                  value='Sea Surface Temp'),
                     html.H6('Attribute for color:'),
                     dcc.Dropdown(id='scatter_color',
-                                 options=dropdown_numerical,
-                                 #  options=[
-                                 #      {'label': 'Longitude', 'value': 'Longitude'},
-                                 #      {'label': 'Latitude', 'value': 'Latitude'},
-                                 #      {'label': 'Depth top', 'value': 'Depth top'},
-                                 #      {'label': 'Depth bottom',
-                                 #          'value': 'Depth bot'},
-                                 #      {'label': 'MHWs category',
-                                 #          'value': 'category'},
-                                 #      {'label': 'MHWs',
-                                 #       'value': 'MHWs'},
-                                 #     {'label': 'Marine Biome',
-                                 #          'value': 'MP biome'},
-                                 #     {'label': 'OS region',
-                                 #          'value': 'OS region'},
-                                 #     {'label': 'Sea Surface Temp',
-                                 #          'value': 'Sea Surface Temp'},
-
-                                 #  ],
+                                 options=dropdown_scatter_color,
                                  multi=False,
                                  clearable=True,
                                  value='',
@@ -291,12 +265,8 @@ px.set_mapbox_access_token(
 
 stylesheets = [
     dbc.themes.FLATLY,
-    # {
-    #     "href": "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap",
-    #     "rel": "stylesheet",
-    # },
     {
-        "href": "assets/custom.css",  # Path to your custom CSS file
+        "href": "assets/custom.css",  # Path to custom CSS file
         "rel": "stylesheet",
     },
 ]
@@ -307,13 +277,11 @@ app = dash.Dash(__name__, external_stylesheets=stylesheets,
 
 server = app.server
 
-# Set the title of the Dash app
-app.title = "Tara Oceans Dash"  # Set your desired title here
+
+app.title = "Tara Oceans Dash"  # Title of the dashboard
 
 
 # load_figure_template('FLATLY')
-# Makes the Bootstrap Themed Plotly templates available
-# load_figure_template("cerulean")
 load_figure_template(["cerulean", "zephyr"])
 
 
@@ -334,12 +302,15 @@ layout_home = html.Div([
                         id='map-color-input',
                         options=[
                             {"label": 'Ocean and sea region', "value": 'OS region'},
+                            {"label": 'Marine heatwave category',
+                                "value": 'MHW category'},
+                            {"label": 'Marine heatwave count',
+                                "value": 'MHW count'},
                             {"label": 'Marine biome', "value": 'MP biome'},
-                            {"label": 'Depth layer zone',
+                            {"label": 'Depth Layer Zone',
                                 "value": 'Depth Layer Zone'},
                             {"label": 'Campaign', "value": 'Campaign'},
-                            {"label": 'Marine Heatwaves', "value": 'MHW-category'},
-                            {"label": 'No colors', "value": 'no_col'},
+                            {"label": 'No colors', "value": 'No category'},
                         ],
                         value='OS region',  # Default value
                         clearable=False,
@@ -592,9 +563,9 @@ def store_selected_point_info(map_clicked, timeline_clicked):
 # ------- Ocean map - Plot sample locations -------
 # Define your list of colors
 custom_colors = [
-    '#0277BD', '#FFA726', '#C2185B', '#9CCC65', '#EA80FC',
-    '#FFEE58', '#00897B', '#EC7063', '#7E57C2', '#82E0AA', '#795548',
-    '#689F38', '#26C6DA', '#8BC34A', '#239B56',
+    '#388E3C', '#FFEE58', '#FFA726', '#C2185B', '#EA80FC',
+    '#A7FFEB', '#7E57C2', '#EC7063', '#0277BD', '#82E0AA',
+    '#795548', '#689F38', '#26C6DA', '#8BC34A', '#239B56',
     '#FFEB3B', '#81C784', '#26A69A', '#EF5350', '#229954',
     '#607D8B', '#AB47BC', '#73C6B6', '#F9A825', '#4DD0E1',
     '#2471A3', '#C39BD3', '#F5B7B1', '#00BCD4', '#AB47BC',
@@ -602,18 +573,18 @@ custom_colors = [
     '#1976D2', '#3F51B5', '#4CAF50', '#626567', '#FF80AB',
     '#00B8D4', '#CE93D8', '#E91E63', '#7D3C98', '#ABEBC6',
     '#2E7D32', '#F4D03F', '#283593', '#80DEEA', '#FF8F00',
-    '#1A5276', '#B388FF', '#76448A', '#2ECC71', '#839192',
-    '#304FFE',
+    '#1A5276', '#B388FF', '#76448A', '#839192', '#304FFE',
 ]
 
 # Define the labels dictionary
 legend_labels = {
     "OS region": "OS<br>Region",
+    "MHW category": "MHWs category",
+    "MHW count": "MHWs count",
     "MP biome": "Marine Biome",
     "Depth Layer Zone": "Depth Layer",
     "Campaign": "Campaign",
-    "MHW-category": "Marine Heatwaves",
-    "no_col": "No color",
+    "No category": "No color",
 }
 
 
@@ -628,6 +599,8 @@ legend_labels = {
 def plot_samples_map(year_range, selected_column, checklist, color_by, selected_point):
 
     dff = df[df['Year'].between(year_range[0], year_range[1])]
+
+    dff['MHW count'] = dff['MHW count'].astype(str)
 
     # Filter DataFrame based on selected column and checklist options
     if 'values' in checklist:
@@ -647,7 +620,7 @@ def plot_samples_map(year_range, selected_column, checklist, color_by, selected_
                                     'Station', 'Campaign',
                                     'OS region', 'MP biome',
                                     'Depth Layer Zone', 'Depth top',
-                                    'Sea Surface Temp', 'MHW-category',
+                                    'Sea Surface Temp', 'MHW category', 'MHW count',
                                     'Latitude', 'Longitude'],
                                 )
 
@@ -661,8 +634,8 @@ def plot_samples_map(year_range, selected_column, checklist, color_by, selected_
         '%{customdata[6]}<br>' \
         'Depth: %{customdata[7]}<br>' \
         'SST: %{customdata[8]:.2f}<br>' \
-        'Marine Heatwaves: %{customdata[9]}<br>' \
-        'Lat: %{customdata[10]:.3f}, Lon: %{customdata[11]:.3f}<extra></extra>'
+        'Marine Heatwaves: %{customdata[10]} (%{customdata[9]})<br>' \
+        'Lat: %{customdata[11]:.3f}, Lon: %{customdata[12]:.3f}<extra></extra>'
 
     # Update the hover template
     map_fig.update_traces(hovertemplate=hover_template)
@@ -675,7 +648,8 @@ def plot_samples_map(year_range, selected_column, checklist, color_by, selected_
         margin={"r": 0, "l": 0, "b": 10, "t": 0},
     )
 
-    legend_show = ["MP biome", "OS region", "Depth Layer Zone", "MHW-category"]
+    legend_show = ["MP biome", "OS region", "Depth Layer Zone",
+                   "MHW category", "MHW count"]
 
     if color_by in legend_show:
         map_fig.update_layout(
@@ -788,13 +762,15 @@ def display_selected_point_info(selected_point):
         {"Attribute": "Depth (top)", "Value": selected_row['Depth top']},
         {"Attribute": "SST", "Value": selected_row['Sea Surface Temp']},
         {"Attribute": "Marine Heatwave category",
-            "Value": selected_row['MHW-category']},
+            "Value": selected_row['MHW category']},
+        {"Attribute": "Marine Heatwave count",
+            "Value": selected_row['MHW count']},
         {"Attribute": "Nitrate", "Value": selected_row['Nitrate']},
         {"Attribute": "Phosphate",
          "Value": selected_row['Phosphate median']},
         {"Attribute": "Iron", "Value": selected_row['Iron']},
         {"Attribute": "Chlorophyll a", "Value": selected_row['Chlorophyll a']},
-        {"Attribute": "Carbon production",
+        {"Attribute": "Carbon Production",
             "Value": selected_row['Net PP carbon 30']},
         {"Attribute": "Latitude", "Value": selected_row['Latitude']},
         {"Attribute": "Longitude", "Value": selected_row['Longitude']},
@@ -1019,10 +995,10 @@ def update_timeline(selected_variable, selected_point_info, color_by):
     fig.update_layout(
         title=f'{selected_variable} over time',
         title_x=0.5,  # Center the title
-        title_y=0.98,
+        title_y=0.95,
         margin=dict(t=30, l=20, b=20, r=20),  # Margin of plot
         showlegend=True,
-        legend=dict(x=0.9, y=0.98),
+        legend=dict(x=0.9, y=1.15),
         xaxis=dict(
             tickmode='linear',  # Set tick mode to linear
             dtick='M1',  # Set tick frequency to one month (M1)
@@ -1031,10 +1007,11 @@ def update_timeline(selected_variable, selected_point_info, color_by):
             range=['2009-08-01', '2014-01-01']
         ))
 
-    if color_by != "no_col":
+    if color_by != "No category":
         fig.update_layout(
             legend=dict(
                 title=f'Colored by<br>{color_by}',
+                x=0.9, y=1.15,
             )
         )
 
@@ -1042,7 +1019,7 @@ def update_timeline(selected_variable, selected_point_info, color_by):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=False, host='0.0.0.0', port=8080)
+    app.run_server(debug=True, host='0.0.0.0', port=8080)
 
 
 # # start the web application

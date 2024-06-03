@@ -1,3 +1,10 @@
 .DS_Store
 *.nc
 *.png
+Data/NOAA_Tara/NOAA_SST_1981-2013.csv
+Data/NOAA_Tara/NOAA_water_locations.csv
+Data/NOAA_Tara/Tara_mhws_info.csv
+Data/NOAA_Tara/Tara_mhws_info1.csv
+Data/NOAA_Tara/Tara_NOAA_locations.csv
+Data/NOAA_Tara/Tara_NOAA_unique_locations.csv
+Data/NOAA_Tara/TARA_Unique_Dash.csv
