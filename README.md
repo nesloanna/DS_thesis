@@ -27,8 +27,8 @@
 
 
 ### Machine Learning
-* `classifier_count.ipynb` → Decision tree classification (MHW occurence and counts)
-* `classifier_categories.ipynb` → Decision tree classification (MHW categories)
+* `classifier_count.ipynb` → Decision tree classification (MHW occurrence and counts)
+* `classifier_category.ipynb` → Decision tree classification (MHW categories)
 
 
 ### Link to [Tara Oceans Dashboard](https://tara-dash-2024.nw.r.appspot.com/)
